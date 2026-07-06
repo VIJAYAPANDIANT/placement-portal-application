@@ -107,7 +107,7 @@ const StudentProfile = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.name.lower().endsWith('.pdf') && file.type !== 'application/pdf') {
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
       setAlert({ type: 'danger', message: 'Only PDF files allowed' });
       return;
     }
