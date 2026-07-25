@@ -184,25 +184,8 @@ To ensure a seamless, high-impact grading demonstration and immediate verificati
 * **Email:** `admin@placement.com`
 * **Password:** `admin123`
 
-### Pre-Seeded Corporate Recruiters (16 Companies)
-All 16 seeded companies share a uniform test login password: `company123`.
-
-| # | Company Name | Email Login | Job Title Offered | Package (LPA) | Min CGPA |
-|---|---|---|---|---:|---:|
-| 1 | **Google** | `hr@google.com` | Software Engineer (L3) | **45.0 LPA** | **8.0** |
-| 2 | **Microsoft** | `hr@microsoft.com` | Cloud Solutions Developer | **42.0 LPA** | **7.5** |
-| 3 | **Amazon** | `hr@amazon.com` | SDE-1 | **38.0 LPA** | **7.2** |
-| 4 | **Adobe** | `hr@adobe.com` | Product Engineer | **32.0 LPA** | **7.8** |
-| 5 | **Goldman Sachs** | `hr@gs.com` | Technology Analyst | **28.0 LPA** | **7.5** |
-| 6 | **Qualcomm** | `hr@qualcomm.com` | Embedded Systems Engineer | **26.0 LPA** | **7.5** |
-| 7 | **Oracle** | `hr@oracle.com` | Database Architect | **24.0 LPA** | **7.0** |
-| 8 | **Cisco** | `hr@cisco.com` | Network Security Engineer | **22.0 LPA** | **7.0** |
-| 9 | **IBM** | `hr@ibm.com` | AI & Quantum Associate | **18.0 LPA** | **6.8** |
-| 10 | **Accenture** | `hr@accenture.com` | Technology Analyst | **12.0 LPA** | **6.5** |
-| 11 | **Infosys** | `hr@infosys.com` | Specialist Programmer | **9.5 LPA** | **6.5** |
-| 12 | **Tech Mahindra** | `hr@techmahindra.com` | Cybersecurity Specialist | **8.0 LPA** | **6.5** |
-| 13 | **Capgemini** | `hr@capgemini.com` | Cloud Associate | **7.5 LPA** | **6.2** |
-| 14 | **TCS** | `hr@tcs.com` | Digital Ninja Developer | **7.5 LPA** | **6.0** |
-| 15 | **Cognizant** | `hr@cognizant.com` | Gen-C Next Engineer | **6.75 LPA** | **6.0** |
-| 16 | **Wipro** | `hr@wipro.com` | Turbo Associate | **6.5 LPA** | **6.0** |
+### Pre-Seeded Corporate Recruiter Accounts
+To facilitate immediate feature verification without manual input, the database automatically initializes with **16+ realistic enterprise corporate profiles** (including Google, Microsoft, Amazon, Adobe, TCS, Infosys) along with active placement drives featuring diverse salary packages and CGPA criteria.
+* **Default Recruiter Logins:** `hr@google.com`, `hr@microsoft.com`, `hr@amazon.com`, etc.
+* **Default Password for All Companies:** `company123`
 
