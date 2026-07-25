@@ -125,10 +125,3 @@ Start the Vite development server:
 npm run dev
 ```
 The frontend will typically be accessible at `http://localhost:5173`.
-
-## ☁️ Deployment
-
-This project is configured for seamless deployment on platforms like Vercel. 
-- The `backend/vercel.json` and root `vercel.json` are provided to handle serverless function routing for the Flask API and SPA fallbacks for the React frontend.
-- **Frontend Live URL:** [https://placement-portal-application-iota.vercel.app](https://placement-portal-application-iota.vercel.app)
-- **Backend API URL:** [https://placement-portal-application-gnpb.vercel.app](https://placement-portal-application-gnpb.vercel.app)
