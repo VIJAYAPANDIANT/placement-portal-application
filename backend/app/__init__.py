@@ -79,15 +79,15 @@ def create_app(config_class='config.Config'):
         from app import models
         db.create_all()
         
-        # Programmatically seed superuser Admin account upon database initialization as required by specification
-        from app.models.admin import Admin
-        from werkzeug.security import generate_password_hash
-        if not Admin.query.first():
-            default_admin = Admin(
-                email="admin@placement.com",
-                password_hash=generate_password_hash("admin123")
-            )
-            db.session.add(default_admin)
-            db.session.commit()
+        # Programmatically seed superuser Admin account and 16+ realistic tech companies & placement drives
+        try:
+            import sys
+            base_backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if base_backend_dir not in sys.path:
+                sys.path.insert(0, base_backend_dir)
+            from seed import seed_database
+            seed_database(app_context_open=True)
+        except Exception as e:
+            print("Automatic seeding log:", e)
 
     return app
