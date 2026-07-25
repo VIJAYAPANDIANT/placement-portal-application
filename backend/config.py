@@ -1,8 +1,13 @@
 import os
 
+# Get absolute path to the backend directory for local SQLite database storage
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 class Config:
-    # Specifies the database URL. Here we use SQLite, and 'app.db' will be created in /tmp to support Vercel.
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:////tmp/app.db')
+    # Connect database with SQLite for Flask-SQLAlchemy: 
+    # Uses local 'app.db' inside backend folder during local development, and ephemeral '/tmp/app.db' when deployed on Vercel.
+    default_db = 'sqlite:////tmp/app.db' if os.getenv('VERCEL') == '1' else 'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', default_db)
     
     # Disables Flask-SQLAlchemy's event system, which tracks modifications of objects. 
     # Setting it to False avoids overhead and improves performance, as we don't need this custom tracking.
