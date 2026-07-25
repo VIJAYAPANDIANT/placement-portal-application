@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [branchRate, setBranchRate] = useState([]);
   const [driveTrend, setDriveTrend] = useState([]);
+  const [recentStudents, setRecentStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -40,15 +41,17 @@ const AdminDashboard = () => {
         setLoading(true);
         setError(null);
         
-        const [statsRes, branchRes, trendRes] = await Promise.all([
+        const [statsRes, branchRes, trendRes, studentsRes] = await Promise.all([
           api.get('/admin/dashboard/stats'),
           api.get('/admin/dashboard/branch-placement-rate'),
-          api.get('/admin/dashboard/drive-trend')
+          api.get('/admin/dashboard/drive-trend'),
+          api.get('/admin/students')
         ]);
 
         setStats(statsRes.data);
         setBranchRate(branchRes.data);
         setDriveTrend(trendRes.data);
+        setRecentStudents(studentsRes.data.slice(0, 5));
       } catch (err) {
         console.error('Error fetching admin dashboard data:', err);
         setError(err.response?.data?.message || 'Failed to fetch dashboard data. Please try again.');
@@ -215,6 +218,59 @@ const AdminDashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Recent Student Registrations */}
+      <div className="panel-card mt-4">
+        <div className="panel-header">
+          <h5 className="panel-title">Recent Student Registrations</h5>
+          <span className="status-pill pill-info">
+            🎓 {stats?.total_students || 0} Registered Students
+          </span>
+        </div>
+
+        {recentStudents.length === 0 ? (
+          <div className="text-center py-4">
+            <p className="text-muted mb-0">No registered students found.</p>
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="enhanced-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student Name</th>
+                  <th>Roll Number</th>
+                  <th>Branch</th>
+                  <th>CGPA</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentStudents.map((student, idx) => (
+                  <tr key={student.id}>
+                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
+                    <td className="fw-bold">{student.name}</td>
+                    <td>{student.roll_number}</td>
+                    <td>
+                      <span className="status-pill pill-purple">
+                        {student.branch}
+                      </span>
+                    </td>
+                    <td className="fw-bold">{student.cgpa}</td>
+                    <td>
+                      {student.is_blacklisted ? (
+                        <span className="status-pill pill-danger">● Blacklisted</span>
+                      ) : (
+                        <span className="status-pill pill-success">● Active</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

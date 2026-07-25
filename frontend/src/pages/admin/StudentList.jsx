@@ -2,28 +2,28 @@ import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 
 const StudentList = () => {
-  const [students, setStudents] = useState([
-    { id: 1, name: 'Amit Sharma', roll_number: '2023CSE01', branch: 'CSE', cgpa: 9.2, is_blacklisted: false },
-    { id: 2, name: 'Priya Patel', roll_number: '2023ECE05', branch: 'ECE', cgpa: 8.5, is_blacklisted: false },
-    { id: 3, name: 'Rahul Verma', roll_number: '2023IT12', branch: 'IT', cgpa: 7.8, is_blacklisted: true },
-    { id: 4, name: 'Sneha Reddy', roll_number: '2023EEE04', branch: 'EEE', cgpa: 9.0, is_blacklisted: false },
-    { id: 5, name: 'Vikram Singh', roll_number: '2023MECH08', branch: 'MECH', cgpa: 6.9, is_blacklisted: false }
-  ]);
-  
-  const [loading, setLoading] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
-    const testConnection = async () => {
-      try {
-        await api.get('/admin/dashboard/stats');
-      } catch (err) {
-        console.error('Connection test to admin stats failed:', err);
-      }
-    };
-    testConnection();
+    fetchStudents();
   }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.get('/admin/students');
+      setStudents(res.data);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      setError(err.response?.data?.message || 'Failed to fetch student directory.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleToggleBlacklist = async (id) => {
     try {
@@ -60,6 +60,28 @@ const StudentList = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+        <p className="mt-3 text-muted">Fetching registered student directory...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="panel-card p-4 text-center border-danger">
+        <p className="text-danger mb-0">{error}</p>
+        <button className="btn btn-outline-danger btn-sm mt-3" onClick={fetchStudents}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       {alert && (
@@ -77,56 +99,64 @@ const StudentList = () => {
           </span>
         </div>
 
-        <div className="table-responsive">
-          <table className="enhanced-table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Student Name</th>
-                <th>Roll Number</th>
-                <th>Branch</th>
-                <th>CGPA</th>
-                <th>Status</th>
-                <th className="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {students.map((student, idx) => (
-                <tr key={student.id}>
-                  <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
-                  <td className="fw-bold">{student.name}</td>
-                  <td>{student.roll_number}</td>
-                  <td>
-                    <span className="status-pill pill-purple">
-                      {student.branch}
-                    </span>
-                  </td>
-                  <td className="fw-bold">{student.cgpa}</td>
-                  <td>
-                    {student.is_blacklisted ? (
-                      <span className="status-pill pill-danger">
-                        ● Blacklisted
-                      </span>
-                    ) : (
-                      <span className="status-pill pill-success">
-                        ● Active
-                      </span>
-                    )}
-                  </td>
-                  <td className="text-end">
-                    <button
-                      className={`btn btn-sm ${student.is_blacklisted ? 'btn-success' : 'btn-outline-danger'} px-3`}
-                      style={{ borderRadius: '6px', fontSize: '12px' }}
-                      onClick={() => handleToggleBlacklist(student.id)}
-                    >
-                      {student.is_blacklisted ? 'Unblacklist' : 'Blacklist'}
-                    </button>
-                  </td>
+        {students.length === 0 ? (
+          <div className="text-center py-5">
+            <div style={{ fontSize: '2.5rem' }}>🎓</div>
+            <p className="mt-3 fw-semibold mb-1">No registered students found</p>
+            <small className="text-muted">Once students register for the portal, they will appear here.</small>
+          </div>
+        ) : (
+          <div className="table-responsive">
+            <table className="enhanced-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student Name</th>
+                  <th>Roll Number</th>
+                  <th>Branch</th>
+                  <th>CGPA</th>
+                  <th>Status</th>
+                  <th className="text-end">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {students.map((student, idx) => (
+                  <tr key={student.id}>
+                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
+                    <td className="fw-bold">{student.name}</td>
+                    <td>{student.roll_number}</td>
+                    <td>
+                      <span className="status-pill pill-purple">
+                        {student.branch}
+                      </span>
+                    </td>
+                    <td className="fw-bold">{student.cgpa}</td>
+                    <td>
+                      {student.is_blacklisted ? (
+                        <span className="status-pill pill-danger">
+                          ● Blacklisted
+                        </span>
+                      ) : (
+                        <span className="status-pill pill-success">
+                          ● Active
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-end">
+                      <button
+                        className={`btn btn-sm ${student.is_blacklisted ? 'btn-success' : 'btn-outline-danger'} px-3`}
+                        style={{ borderRadius: '6px', fontSize: '12px' }}
+                        onClick={() => handleToggleBlacklist(student.id)}
+                      >
+                        {student.is_blacklisted ? 'Unblacklist' : 'Blacklist'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

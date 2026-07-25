@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
-from app import db
+from app import db, cache
 from app.models.admin import Admin
 from app.models.company import Company
 from app.models.student import Student
@@ -121,6 +121,10 @@ def register_student():
         )
         db.session.add(new_student)
         db.session.commit()
+        try:
+            cache.delete('admin_stats')
+        except Exception:
+            pass
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Failed to create student: {str(e)}'}), 500

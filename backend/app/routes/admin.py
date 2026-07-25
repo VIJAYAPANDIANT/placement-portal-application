@@ -54,6 +54,10 @@ def approve_company(company_id):
 
     try:
         db.session.commit()
+        try:
+            cache.delete('admin_stats')
+        except Exception:
+            pass
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Database error: {str(e)}'}), 500
@@ -135,6 +139,10 @@ def approve_drive(drive_id):
 
     try:
         db.session.commit()
+        try:
+            cache.delete('admin_stats')
+        except Exception:
+            pass
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Database error: {str(e)}'}), 500
@@ -262,4 +270,27 @@ def get_drive_trend():
 
     response_data = [{'month': month, 'count': monthly_counts[month]} for month in months_list]
 
+    return jsonify(response_data), 200
+
+
+@admin_bp.route('/students', methods=['GET'])
+@role_required('admin')
+def get_all_students():
+    """
+    GET /students
+    Returns all Student records from the database.
+    """
+    students = Student.query.all()
+    response_data = []
+    for student in students:
+        response_data.append({
+            'id': student.id,
+            'name': student.name,
+            'email': student.email,
+            'roll_number': student.roll_number,
+            'branch': student.branch,
+            'cgpa': student.cgpa,
+            'is_blacklisted': student.is_blacklisted,
+            'is_active': student.is_active
+        })
     return jsonify(response_data), 200
