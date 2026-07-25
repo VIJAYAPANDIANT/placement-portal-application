@@ -79,4 +79,15 @@ def create_app(config_class='config.Config'):
         from app import models
         db.create_all()
         
+        # Programmatically seed superuser Admin account upon database initialization as required by specification
+        from app.models.admin import Admin
+        from werkzeug.security import generate_password_hash
+        if not Admin.query.first():
+            default_admin = Admin(
+                email="admin@placement.com",
+                password_hash=generate_password_hash("admin123")
+            )
+            db.session.add(default_admin)
+            db.session.commit()
+
     return app
