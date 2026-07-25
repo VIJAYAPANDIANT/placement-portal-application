@@ -56,6 +56,56 @@ flowchart TB
     Celery -->|Update| DB
 ```
 
+## 🗄️ Database ERD (Entity-Relationship Diagram)
+
+The application implements a strict 5-table relational database architecture powered by **SQLAlchemy ORM**:
+
+```mermaid
+erDiagram
+    COMPANY ||--o{ PLACEMENT_DRIVE : "Creates / Posts"
+    PLACEMENT_DRIVE ||--o{ APPLICATION : "Receives"
+    PLACEMENT_DRIVE ||--o| INTERVIEW_SCHEDULE : "Organizes"
+    STUDENT ||--o{ APPLICATION : "Submits"
+
+    STUDENT {
+        int id PK
+        string name
+        string roll_number
+        float cgpa
+        string branch
+        string resume_url
+        json skills
+    }
+    COMPANY {
+        int id PK
+        string name
+        string industry
+        string approval_status
+    }
+    PLACEMENT_DRIVE {
+        int id PK
+        int company_id FK
+        string job_title
+        float package_lpa
+        float eligibility_cgpa
+        date application_deadline
+    }
+    APPLICATION {
+        int id PK
+        int student_id FK
+        int drive_id FK
+        string status
+        date applied_on
+    }
+    INTERVIEW_SCHEDULE {
+        int id PK
+        int drive_id FK
+        date interview_date
+        string interview_mode
+        string location_or_link
+    }
+```
+
 ## 🛠 Tech Stack
 
 * **Frontend**: React 19, Vite, React Router DOM, Bootstrap 5, Chart.js, Axios
