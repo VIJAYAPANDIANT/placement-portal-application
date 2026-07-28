@@ -1,4 +1,14 @@
 import os
+# Globally monkeypatch redis-py to default to RESP2 (protocol=2) and disable maintenance notifications.
+# This ensures compatibility with older Redis versions (like Redis 5.x on Windows) without breaking.
+try:
+    import redis.connection
+    import redis.maint_notifications
+    redis.connection.DEFAULT_RESP_VERSION = 2
+    redis.maint_notifications.MaintNotificationsConfig.__init__.__defaults__ = (False, True, 10, None)
+except ImportError:
+    pass
+
 from flask import Flask, jsonify, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
