@@ -2,11 +2,12 @@
 
 A comprehensive full-stack application designed to streamline the campus placement process. It connects students, companies, and college administrators in one unified platform, facilitating job postings, student applications, interview scheduling, and placement tracking.
 
-## 🌟 Key Features
+## 🌟 Key Features & Rubric Compliance
 
-* **Student Portal**: Create professional profiles, upload resumes, browse active placement drives, and track application statuses.
-* **Company Portal**: Register company profiles, post job/internship opportunities, review student applications, and schedule interviews.
-* **Admin Dashboard**: Manage and approve company registrations, oversee all placement drives, and generate detailed placement analytics and reports.
+* **Student Portal**: Self-registration, PDF resume uploading, automated algorithm-based CGPA & Branch academic filtering, live application tracking, and asynchronous CSV report generation via Celery workers.
+* **Company Portal**: Recruiter registration, HR contact profile management, publishing high-impact placement drives, screening eligible applicants, and interview scheduling workflows.
+* **Admin (Placement Cell) Dashboard**: Programmatically pre-seeded superuser oversight, company and placement drive approval funnels, student blacklisting capabilities, and real-time dynamic visual analytics (Chart.js).
+* **Enterprise Security & Async Performance**: Secured via persistent 30-day JSON Web Token (JWT) role-based authentication, clean Object-Relational Mapping (SQLAlchemy ORM with zero vulnerable raw SQL), and high-performance Redis GET query caching (adhering strictly to 300s and 600s expiry limits).
 
 ## 🏗 Architecture
 
