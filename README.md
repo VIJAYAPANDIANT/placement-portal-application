@@ -175,3 +175,17 @@ Start the Vite development server:
 npm run dev
 ```
 The frontend will typically be accessible at `http://localhost:5173`.
+
+## 🔑 Demo Credentials & Pre-Seeded Data
+
+To ensure a seamless, high-impact grading demonstration and immediate verification without manual database configuration, the application **automatically programmatically seeds** the database upon startup with an Admin superuser account and **16 world-class corporate recruitment drives**.
+
+### Superuser Admin Account
+* **Email:** `admin@placement.com`
+* **Password:** `admin123`
+
+### Pre-Seeded Corporate Recruiter Accounts
+To facilitate immediate feature verification without manual input, the database automatically initializes with **16+ realistic enterprise corporate profiles** (including Google, Microsoft, Amazon, Adobe, TCS, Infosys) along with active placement drives featuring diverse salary packages and CGPA criteria.
+* **Default Recruiter Logins:** `hr@google.com`, `hr@microsoft.com`, `hr@amazon.com`, etc.
+* **Default Password for All Companies:** `company123`
+
