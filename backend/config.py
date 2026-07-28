@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 # Get absolute path to the backend directory for local SQLite database storage
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -19,6 +20,7 @@ class Config:
     # The secret key used by Flask-JWT-Extended to sign and encode JWT tokens.
     # In a production environment, this should be a secure, random string loaded from environment variables.
     JWT_SECRET_KEY = 'super-secret-key-change-in-production'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=30)
 
     # Redis config (broker and result backend)
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
