@@ -21,8 +21,8 @@ class Config:
     JWT_SECRET_KEY = 'super-secret-key-change-in-production'
 
     # Redis config (broker and result backend)
-    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0?protocol=2')
+    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0?protocol=2')
     CELERY_BROKER_TRANSPORT_OPTIONS = {'protocol': 2}
     CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {'protocol': 2}
 
