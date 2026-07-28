@@ -1,5 +1,8 @@
 import os
 
+# Get absolute path to the backend directory for local SQLite database storage
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 class Config:
     # For Vercel / serverless environment, fallback to /tmp/app.db.
     # Otherwise, use the standard Flask instance folder database path.

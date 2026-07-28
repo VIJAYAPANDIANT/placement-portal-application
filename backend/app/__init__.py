@@ -19,7 +19,22 @@ def make_celery(app):
         broker=app.config['CELERY_BROKER_URL'],
         backend=app.config['CELERY_RESULT_BACKEND']
     )
-    celery.conf.update(app.config)
+    
+    # Filter and convert Flask's Celery configurations to lowercase to prevent mixing key styles
+    celery_config = {}
+    for key, value in app.config.items():
+        if key.startswith('CELERY_'):
+            # Convert CELERY_BROKER_URL -> broker_url, CELERY_RESULT_BACKEND -> result_backend
+            # and other settings to lowercase without the 'CELERY_' prefix if needed.
+            if key == 'CELERY_BROKER_URL':
+                new_key = 'broker_url'
+            elif key == 'CELERY_RESULT_BACKEND':
+                new_key = 'result_backend'
+            else:
+                new_key = key[7:].lower()
+            celery_config[new_key] = value
+            
+    celery.conf.update(celery_config)
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
@@ -79,4 +94,15 @@ def create_app(config_class='config.Config'):
         from app import models
         db.create_all()
         
+        # Programmatically seed superuser Admin account and 16+ realistic tech companies & placement drives
+        try:
+            import sys
+            base_backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            if base_backend_dir not in sys.path:
+                sys.path.insert(0, base_backend_dir)
+            from seed import seed_database
+            seed_database(app_context_open=True)
+        except Exception as e:
+            print("Automatic seeding log:", e)
+
     return app
