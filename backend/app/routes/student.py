@@ -168,7 +168,7 @@ def export_csv():
     if not student:
         return jsonify({"error": "Student not found"}), 404
         
-    export_student_applications_csv.delay(student_id, student.email)
+    export_student_applications_csv.apply_async(args=[student_id, student.email], app=current_app.celery)
     return jsonify({"message": "Export started, you will receive an email shortly"}), 200
 
 # ==========================================
