@@ -62,93 +62,113 @@ const StudentList = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex flex-column justify-content-center align-items-center py-5 fade-in">
+        <div className="spinner-border text-primary shadow-sm" role="status" style={{ width: '3rem', height: '3rem' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-3 text-muted">Fetching registered student directory...</p>
+        <p className="mt-3 text-muted fw-medium">Fetching registered student directory...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-0">{error}</p>
-        <button className="btn btn-outline-danger btn-sm mt-3" onClick={fetchStudents}>
-          Retry
+      <div className="card border-danger shadow-sm p-4 text-center fade-in">
+        <div className="text-danger mb-3" style={{ fontSize: '2.5rem' }}><i className="bi bi-exclamation-triangle-fill"></i></div>
+        <h5 className="fw-bold text-dark mb-2">Error Loading Students</h5>
+        <p className="text-muted mb-4">{error}</p>
+        <button className="btn btn-outline-danger fw-semibold rounded-pill px-4 mx-auto" onClick={fetchStudents}>
+          <i className="bi bi-arrow-clockwise me-2"></i>Retry
         </button>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="fade-in">
+      <div className="mb-4">
+        <h4 className="fw-bold text-dark mb-1">Student Registry</h4>
+        <p className="text-secondary mb-0" style={{ fontSize: '0.95rem' }}>Manage all registered students and their platform access.</p>
+      </div>
+
       {alert && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show mb-4`} role="alert">
+        <div className={`alert alert-${alert.type} alert-dismissible fade show shadow-sm mb-4`} role="alert">
+          {alert.type === 'success' ? <i className="bi bi-check-circle-fill me-2"></i> : alert.type === 'info' ? <i className="bi bi-info-circle-fill me-2"></i> : <i className="bi bi-exclamation-triangle-fill me-2"></i>}
           {alert.message}
           <button type="button" className="btn-close" onClick={() => setAlert(null)} aria-label="Close"></button>
         </div>
       )}
 
-      <div className="panel-card">
-        <div className="panel-header">
-          <h5 className="panel-title">Registered Student Registry</h5>
-          <span className="status-pill pill-info">
-            🎓 {students.length} Total Students
+      <div className="card border-0 shadow-sm">
+        <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+          <h5 className="fw-bold text-dark mb-0">All Students</h5>
+          <span className="badge badge-soft-primary px-3 py-2 fs-6">
+            <i className="bi bi-people-fill me-2"></i>{students.length} Total
           </span>
         </div>
 
         {students.length === 0 ? (
-          <div className="text-center py-5">
-            <div style={{ fontSize: '2.5rem' }}>🎓</div>
-            <p className="mt-3 fw-semibold mb-1">No registered students found</p>
-            <small className="text-muted">Once students register for the portal, they will appear here.</small>
+          <div className="card-body text-center py-5">
+            <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
+              <i className="bi bi-person-lines-fill text-muted" style={{ fontSize: '2.5rem' }}></i>
+            </div>
+            <h5 className="fw-bold text-dark mb-2">No Registered Students</h5>
+            <p className="text-muted mb-0">Once students register for the portal, they will appear here.</p>
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="enhanced-table">
-              <thead>
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
                 <tr>
-                  <th>#</th>
-                  <th>Student Name</th>
-                  <th>Roll Number</th>
-                  <th>Branch</th>
-                  <th>CGPA</th>
-                  <th>Status</th>
-                  <th className="text-end">Actions</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">#</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">STUDENT NAME</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">ROLL NUMBER</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">BRANCH</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">CGPA</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">STATUS</th>
+                  <th className="px-4 py-3 text-muted small fw-bold text-end">ACTIONS</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="border-top-0">
                 {students.map((student, idx) => (
                   <tr key={student.id}>
-                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
-                    <td className="fw-bold">{student.name}</td>
-                    <td>{student.roll_number}</td>
-                    <td>
-                      <span className="status-pill pill-purple">
+                    <td className="px-4 text-muted fw-semibold">{idx + 1}</td>
+                    <td className="px-4 fw-bold text-dark">
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: '32px', height: '32px' }}>
+                          <i className="bi bi-person"></i>
+                        </div>
+                        {student.name}
+                      </div>
+                    </td>
+                    <td className="px-4 text-secondary">{student.roll_number}</td>
+                    <td className="px-4">
+                      <span className="badge badge-soft-primary px-2 py-1">
                         {student.branch}
                       </span>
                     </td>
-                    <td className="fw-bold">{student.cgpa}</td>
-                    <td>
+                    <td className="px-4 fw-bold text-dark">{student.cgpa}</td>
+                    <td className="px-4">
                       {student.is_blacklisted ? (
-                        <span className="status-pill pill-danger">
-                          ● Blacklisted
+                        <span className="badge badge-soft-danger px-2 py-1">
+                          <i className="bi bi-slash-circle-fill me-1"></i>Blacklisted
                         </span>
                       ) : (
-                        <span className="status-pill pill-success">
-                          ● Active
+                        <span className="badge badge-soft-success px-2 py-1">
+                          <i className="bi bi-check-circle-fill me-1"></i>Active
                         </span>
                       )}
                     </td>
-                    <td className="text-end">
+                    <td className="px-4 text-end">
                       <button
-                        className={`btn btn-sm ${student.is_blacklisted ? 'btn-success' : 'btn-outline-danger'} px-3`}
-                        style={{ borderRadius: '6px', fontSize: '12px' }}
+                        className={`btn btn-sm ${student.is_blacklisted ? 'btn-success' : 'btn-outline-danger'} fw-semibold px-3 d-inline-flex align-items-center gap-1`}
                         onClick={() => handleToggleBlacklist(student.id)}
                       >
-                        {student.is_blacklisted ? 'Unblacklist' : 'Blacklist'}
+                        {student.is_blacklisted ? (
+                          <><i className="bi bi-arrow-counterclockwise"></i> Unblacklist</>
+                        ) : (
+                          <><i className="bi bi-ban"></i> Blacklist</>
+                        )}
                       </button>
                     </td>
                   </tr>
