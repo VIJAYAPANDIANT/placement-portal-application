@@ -114,14 +114,6 @@ erDiagram
 * **Async Processing**: Celery, Redis (for background tasks & caching)
 * **Database**: SQLite (local dev), PostgreSQL (production recommended)
 
-## 🎨 Premium SaaS Frontend (PlaceLink Design System)
-
-The frontend has been completely redesigned using a custom **PlaceLink Premium SaaS Design System**, delivering a top-tier user experience:
-- **Glassmorphism & Shadows**: Soft, elevated cards with subtle blur effects and smooth hover transitions.
-- **Dynamic Micro-Animations**: Elements beautifully fade in upon loading (`.fade-in`), providing a polished, fluid feel.
-- **Unified Branding**: A curated primary color palette with Bootstrap 5 integration, completely discarding generic browser defaults.
-- **Responsive Layout**: Fluid grid structures that scale flawlessly across desktops, tablets, and mobile devices.
-
 ## 🚀 Local Setup Instructions
 
 ### Prerequisites

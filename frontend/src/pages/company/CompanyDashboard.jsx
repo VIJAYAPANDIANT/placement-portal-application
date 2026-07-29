@@ -45,19 +45,19 @@ const CompanyDashboard = () => {
 
   if (loading) {
     return (
-      <div className="d-flex flex-column justify-content-center align-items-center py-5 fade-in">
-        <div className="spinner-border text-primary shadow-sm" role="status" style={{ width: '3rem', height: '3rem' }}>
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-3 text-muted fw-medium">Loading recruitment analytics...</p>
+        <p className="mt-3 text-muted">Loading recruitment analytics...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="card border-danger shadow-sm p-4 text-center fade-in">
-        <p className="text-danger fw-semibold mb-0"><i className="bi bi-exclamation-octagon-fill me-2"></i>{error}</p>
+      <div className="panel-card p-4 text-center border-danger">
+        <p className="text-danger mb-0">{error}</p>
       </div>
     );
   }
@@ -74,140 +74,87 @@ const CompanyDashboard = () => {
           funnel?.rejected || 0
         ],
         backgroundColor: [
-          'rgba(79, 70, 229, 0.85)', // Indigo
-          'rgba(245, 158, 11, 0.85)', // Amber
-          'rgba(16, 185, 129, 0.85)', // Emerald
-          'rgba(239, 68, 68, 0.85)'   // Red
+          'rgba(37, 99, 235, 0.65)',
+          'rgba(217, 119, 6, 0.65)',
+          'rgba(22, 163, 74, 0.65)',
+          'rgba(220, 38, 38, 0.65)'
         ],
-        borderWidth: 0,
-        borderRadius: 8,
-        barPercentage: 0.6
+        borderColor: [
+          'rgba(37, 99, 235, 1)',
+          'rgba(217, 119, 6, 1)',
+          'rgba(22, 163, 74, 1)',
+          'rgba(220, 38, 38, 1)'
+        ],
+        borderWidth: 1,
+        borderRadius: 6
       }
     ]
   };
 
   const chartOptions = {
     responsive: true,
-    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      tooltip: {
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        titleFont: { family: "'Inter', sans-serif", size: 13, weight: '600' },
-        bodyFont: { family: "'Inter', sans-serif", size: 14, weight: 'bold' },
-        padding: 12,
-        cornerRadius: 8,
-        displayColors: false
-      }
+      title: { display: false }
     },
     scales: {
-      x: {
-        grid: { display: false },
-        ticks: { font: { family: "'Inter', sans-serif", weight: '500' }, color: '#64748b' }
-      },
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(226, 232, 240, 0.8)', borderDash: [5, 5] },
-        ticks: { stepSize: 1, font: { family: "'Inter', sans-serif" }, color: '#94a3b8' },
-        border: { display: false }
-      }
+      y: { beginAtZero: true, ticks: { stepSize: 1 } }
     }
   };
 
   return (
-    <div className="fade-in">
+    <div>
       <div className="mb-4">
-        <h4 className="fw-bold text-dark mb-1">Welcome, Hiring Partner 👋</h4>
-        <p className="text-secondary mb-0" style={{ fontSize: '0.95rem' }}>Track student application volume and candidate progression through your recruitment funnel.</p>
+        <h4 className="fw-bold mb-1">Welcome, Hiring Partner 👋</h4>
+        <p className="text-muted mb-0" style={{ fontSize: '13px' }}>Track student application volume and candidate progression through your recruitment funnel.</p>
       </div>
 
-      {/* KPI Cards Row */}
-      <div className="row g-4 mb-4">
-        <div className="col-sm-6 col-xl-3">
-          <div className="card card-hover border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h6 className="text-muted fw-bold mb-1 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Total Applied</h6>
-                  <h3 className="fw-black text-dark mb-0">{funnel?.applied || 0}</h3>
-                </div>
-                <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                  <i className="bi bi-file-earmark-text-fill fs-5"></i>
-                </div>
-              </div>
-              <p className="text-muted small fw-medium mb-0"><i className="bi bi-arrow-up-right text-success me-1"></i> Inbound Profiles</p>
-            </div>
+      <div className="row g-3 mb-4">
+        <div className="col-md-3">
+          <div className="kpi-card">
+            <div className="kpi-label">Total Applied</div>
+            <div className="kpi-value text-info">{funnel?.applied || 0}</div>
+            <div className="kpi-sub">📝 Applications Received</div>
+            <div className="trend-up"><span>↑</span> Inbound Profiles</div>
           </div>
         </div>
-
-        <div className="col-sm-6 col-xl-3">
-          <div className="card card-hover border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h6 className="text-muted fw-bold mb-1 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Shortlisted</h6>
-                  <h3 className="fw-black text-dark mb-0">{funnel?.shortlisted || 0}</h3>
-                </div>
-                <div className="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                  <i className="bi bi-star-fill fs-5"></i>
-                </div>
-              </div>
-              <p className="text-muted small fw-medium mb-0"><i className="bi bi-dash text-secondary me-1"></i> Interview Stage</p>
-            </div>
+        <div className="col-md-3">
+          <div className="kpi-card">
+            <div className="kpi-label">Shortlisted</div>
+            <div className="kpi-value text-warning">{funnel?.shortlisted || 0}</div>
+            <div className="kpi-sub">⭐ Qualified Candidates</div>
+            <div className="trend-neutral"><span>•</span> Interview Stage</div>
           </div>
         </div>
-
-        <div className="col-sm-6 col-xl-3">
-          <div className="card card-hover border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h6 className="text-muted fw-bold mb-1 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Selected</h6>
-                  <h3 className="fw-black text-dark mb-0">{funnel?.selected || 0}</h3>
-                </div>
-                <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                  <i className="bi bi-trophy-fill fs-5"></i>
-                </div>
-              </div>
-              <p className="text-muted small fw-medium mb-0"><i className="bi bi-arrow-up-right text-success me-1"></i> Offers Extended</p>
-            </div>
+        <div className="col-md-3">
+          <div className="kpi-card">
+            <div className="kpi-label">Selected</div>
+            <div className="kpi-value text-success">{funnel?.selected || 0}</div>
+            <div className="kpi-sub">🎉 Offers Extended</div>
+            <div className="trend-up"><span>↑</span> Hired Candidates</div>
           </div>
         </div>
-
-        <div className="col-sm-6 col-xl-3">
-          <div className="card card-hover border-0 shadow-sm h-100">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                  <h6 className="text-muted fw-bold mb-1 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.5px' }}>Rejected</h6>
-                  <h3 className="fw-black text-dark mb-0">{funnel?.rejected || 0}</h3>
-                </div>
-                <div className="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
-                  <i className="bi bi-x-circle-fill fs-5"></i>
-                </div>
-              </div>
-              <p className="text-muted small fw-medium mb-0"><i className="bi bi-dash text-secondary me-1"></i> Profiles Archived</p>
-            </div>
+        <div className="col-md-3">
+          <div className="kpi-card">
+            <div className="kpi-label">Rejected</div>
+            <div className="kpi-value text-danger">{funnel?.rejected || 0}</div>
+            <div className="kpi-sub">❌ Profiles Archived</div>
+            <div className="trend-down"><span>•</span> Not Selected</div>
           </div>
         </div>
       </div>
 
-      {/* Chart Card */}
-      <div className="card border-0 shadow-sm">
-        <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+      <div className="panel-card">
+        <div className="panel-header">
           <div>
-            <h5 className="fw-bold text-dark mb-0">Recruitment Funnel Stage Overview</h5>
-            <small className="text-secondary fw-medium">Visualizing student counts at each progression stage.</small>
-          </div>
-          <div className="bg-light rounded p-2 text-muted">
-            <i className="bi bi-bar-chart-fill fs-5"></i>
+            <h5 className="panel-title">Recruitment Funnel Stage Overview</h5>
+            <small className="text-muted" style={{ fontSize: '11px' }}>Visualizing student counts at each progression stage of active placement drives.</small>
           </div>
         </div>
-        <div className="card-body p-4" style={{ height: '350px' }}>
+        <div className="panel-body">
           <Bar data={chartData} options={chartOptions} />
         </div>
       </div>
-
     </div>
   );
 };

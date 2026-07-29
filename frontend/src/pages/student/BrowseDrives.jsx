@@ -49,141 +49,120 @@ const BrowseDrives = () => {
   };
 
   const getDeadlineStatus = (deadlineStr) => {
-    if (!deadlineStr) return { passed: false, daysLeft: null, color: 'text-muted' };
+    if (!deadlineStr) return { passed: false, cardClass: 'drive-card-far', daysLeft: null };
     const deadline = new Date(deadlineStr);
     deadline.setHours(23, 59, 59, 999);
     const today = new Date();
     const diffTime = deadline - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return { passed: true, daysLeft: 0, color: 'text-danger' };
-    if (diffDays < 3) return { passed: false, daysLeft: diffDays, color: 'text-warning' };
-    return { passed: false, daysLeft: diffDays, color: 'text-success' };
+    if (diffDays < 0) return { passed: true, cardClass: 'drive-card-expired', daysLeft: 0 };
+    if (diffDays < 3) return { passed: false, cardClass: 'drive-card-near', daysLeft: diffDays };
+    if (diffDays <= 7) return { passed: false, cardClass: 'drive-card-mid', daysLeft: diffDays };
+    return { passed: false, cardClass: 'drive-card-far', daysLeft: diffDays };
   };
 
   if (loading) {
     return (
-      <div className="d-flex flex-column justify-content-center align-items-center py-5 fade-in">
-        <div className="spinner-border text-primary shadow-sm" role="status" style={{ width: '3rem', height: '3rem' }}>
+      <div className="text-center py-5">
+        <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-3 text-muted fw-medium">Scanning active campus recruitment drives...</p>
+        <p className="mt-3 text-muted">Scanning active campus recruitment drives...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="card border-danger shadow-sm p-4 text-center fade-in">
-        <p className="text-danger fw-semibold mb-0"><i className="bi bi-exclamation-octagon-fill me-2"></i>{error}</p>
+      <div className="panel-card p-4 text-center border-danger">
+        <p className="text-danger mb-0">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="fade-in">
+    <div>
       <div className="mb-4">
-        <h4 className="fw-bold text-dark mb-1">Browse Active Drives</h4>
-        <p className="text-secondary mb-0" style={{ fontSize: '0.95rem' }}>Explore premium placement opportunities verified by the placement department.</p>
+        <h4 className="fw-bold mb-1">Browse Active Campus Placement Drives</h4>
+        <p className="text-muted mb-0" style={{ fontSize: '13px' }}>Explore opportunities verified by Easwari Engineering College placement department.</p>
       </div>
 
       {drives.length === 0 ? (
-        <div className="card border-0 shadow-sm text-center py-5">
-          <div className="card-body">
-            <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-4" style={{ width: '80px', height: '80px' }}>
-              <i className="bi bi-megaphone-fill text-muted" style={{ fontSize: '2.5rem' }}></i>
-            </div>
-            <h4 className="fw-bold text-dark mb-2">No Active Drives Found</h4>
-            <p className="text-muted mb-0 mx-auto" style={{ maxWidth: '400px' }}>
-              There are currently no placement drives accepting applications. Check back later!
-            </p>
-          </div>
+        <div className="panel-card p-5 text-center">
+          <div style={{ fontSize: '2.5rem' }}>📢</div>
+          <p className="mt-3 fw-semibold mb-1">No placement drives available right now</p>
+          <small className="text-muted">Check back when companies post new recruitment opportunities.</small>
         </div>
       ) : (
-        <div className="row g-4">
+        <div className="row g-3">
           {drives.map(drive => {
-            const { passed, daysLeft, color } = getDeadlineStatus(drive.application_deadline);
+            const { passed, cardClass, daysLeft } = getDeadlineStatus(drive.application_deadline);
             const isApplied = appliedDrives.includes(drive.id);
             const cardAlert = alertInfo?.driveId === drive.id ? alertInfo : null;
 
             return (
-              <div key={drive.id} className="col-lg-6 col-xl-4">
-                <div className="card card-hover h-100 border-0 shadow-sm d-flex flex-column">
-                  
-                  {/* Card Header */}
-                  <div className="card-body pb-0">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div>
-                        <h5 className="fw-bold text-dark mb-1">{drive.job_title}</h5>
-                        <div className="d-flex align-items-center gap-2">
-                          <i className="bi bi-building text-primary"></i>
-                          <span className="text-primary fw-semibold" style={{ fontSize: '0.9rem' }}>{drive.company_name}</span>
-                        </div>
-                      </div>
-                      <span className="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fs-6">
-                        {drive.package_lpa} LPA
-                      </span>
+              <div key={drive.id} className="col-lg-6">
+                <div className={`panel-card h-100 d-flex flex-column justify-content-between mb-0 ${cardClass}`}>
+                  <div className="panel-header">
+                    <div className="flex-grow-1">
+                      <h5 className="panel-title mb-0">{drive.job_title}</h5>
+                      <span className="text-primary fw-semibold" style={{ fontSize: '12px' }}>{drive.company_name}</span>
                     </div>
+                    <span className="status-pill pill-success">
+                      {drive.package_lpa} LPA
+                    </span>
+                  </div>
 
-                    <p className="text-secondary mb-4" style={{ fontSize: '0.9rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <div className="panel-body flex-grow-1">
+                    <p className="small mb-3" style={{ color: 'var(--muted)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {drive.job_description || 'No job description provided.'}
                     </p>
 
-                    {/* Eligibility Stats */}
-                    <div className="bg-light rounded p-3 mb-4">
-                      <div className="row g-3">
-                        <div className="col-6 border-end">
-                          <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Min CGPA</span>
-                          <span className="fw-bold text-dark fs-6">≥ {drive.eligibility_cgpa}</span>
+                    <div className="p-3 border rounded mb-3" style={{ background: 'var(--table-hover)', borderColor: 'var(--card-border)', fontSize: '12px' }}>
+                      <div className="row g-2">
+                        <div className="col-6">
+                          <span className="text-muted d-block" style={{ fontSize: '10px' }}>MINIMUM CGPA</span>
+                          <span className="fw-bold" style={{ color: 'var(--bs-body-color)' }}>≥ {drive.eligibility_cgpa} CGPA</span>
                         </div>
                         <div className="col-6">
-                          <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Branches</span>
-                          <span className="fw-bold text-dark fs-6 text-truncate d-block">
+                          <span className="text-muted d-block" style={{ fontSize: '10px' }}>ELIGIBLE BRANCHES</span>
+                          <span className="fw-bold text-truncate d-block" style={{ color: 'var(--bs-body-color)' }}>
                             {drive.eligible_branches?.join(', ') || 'All Branches'}
                           </span>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Card Footer */}
-                  <div className="card-footer bg-transparent border-top-0 pt-0 pb-3 mt-auto">
-                    
-                    <div className="d-flex justify-content-between align-items-center mb-3 px-2">
-                      <span className="text-muted small fw-medium">Deadline:</span>
-                      <span className={`small fw-bold ${color}`}>
-                        {drive.application_deadline || 'N/A'} {daysLeft !== null && !passed && `(${daysLeft} days left)`}
-                        {passed && '(Expired)'}
+                    <div className="d-flex justify-content-between align-items-center" style={{ fontSize: '12px' }}>
+                      <span className="text-muted">Deadline:</span>
+                      <span className={`fw-bold ${passed ? 'text-danger' : ''}`} style={{ color: passed ? undefined : 'var(--bs-body-color)' }}>
+                        {drive.application_deadline || 'N/A'} {daysLeft !== null && !passed && `(${daysLeft}d left)`}
                       </span>
                     </div>
 
                     {cardAlert && (
-                      <div className={`alert alert-${cardAlert.type} py-2 mb-3 mx-2`} style={{ fontSize: '0.85rem' }} role="alert">
-                        <i className={`bi ${cardAlert.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-2`}></i>
+                      <div className={`alert alert-${cardAlert.type} mt-3 mb-0 py-2`} style={{ fontSize: '12px' }} role="alert">
                         {cardAlert.message}
                       </div>
                     )}
+                  </div>
 
-                    <div className="px-2">
-                      {passed ? (
-                        <button className="btn btn-light w-100 fw-semibold text-muted" disabled>
-                          <i className="bi bi-clock-history me-2"></i>Deadline Passed
-                        </button>
-                      ) : (
-                        <button
-                          className={`btn w-100 fw-semibold shadow-sm ${isApplied ? 'btn-outline-secondary' : 'btn-primary'}`}
-                          onClick={() => handleApply(drive.id)}
-                          disabled={isApplied}
-                        >
-                          {isApplied ? (
-                            <><i className="bi bi-check2-circle me-2"></i>Applied Successfully</>
-                          ) : (
-                            <><i className="bi bi-send-fill me-2"></i>Submit Application</>
-                          )}
-                        </button>
-                      )}
-                    </div>
-
+                  <div className="p-3 border-top" style={{ borderColor: 'var(--card-border)', background: 'var(--table-hover)' }}>
+                    {passed ? (
+                      <button className="btn btn-sm btn-secondary w-100 disabled" style={{ borderRadius: '6px' }}>
+                        ⏳ Application Deadline Passed
+                      </button>
+                    ) : (
+                      <button
+                        className={`btn btn-sm w-100 fw-bold ${isApplied ? 'btn-outline-secondary' : 'btn-primary'}`}
+                        style={{ borderRadius: '6px' }}
+                        onClick={() => handleApply(drive.id)}
+                        disabled={isApplied}
+                      >
+                        {isApplied ? '✔️ Application Submitted' : 'Apply Now for Drive'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
