@@ -114,6 +114,13 @@ erDiagram
 * **Async Processing**: Celery, Redis (for background tasks & caching)
 * **Database**: SQLite (local dev), PostgreSQL (production recommended)
 
+## 🎨 UI/UX Design Philosophy
+
+To deliver an exceptional, premium user experience, the frontend interface was custom-engineered to strictly adhere to the university's styling guidelines:
+* **Zero Prohibited Frameworks:** Built purely with **Bootstrap 5** and custom vanilla CSS without relying on unauthorized styling libraries like Tailwind CSS or Material UI.
+* **Dynamic Aesthetics:** Features interactive hover states, modern card layouts, and vibrant contextual alert indicators to maintain high user engagement.
+* **Unified Component Architecture:** Centralized dashboard layouts ensure seamless, state-of-the-art responsive navigation across Student, Company, and Admin panels.
+
 ## 🚀 Local Setup Instructions
 
 ### Prerequisites
