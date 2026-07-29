@@ -12,13 +12,11 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Validate form fields on the client side
   const validateForm = () => {
     if (!email || !password) {
       setError('Both email and password are required.');
       return false;
     }
-    // Simple email regex pattern
     const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(email)) {
       setError('Please enter a valid email address.');
@@ -35,22 +33,14 @@ const Login = () => {
 
     setLoading(true);
     try {
-      // POST user credentials to backend login endpoint
       const response = await api.post('/auth/login', { email, password });
-      
-      // Extract the JWT token from the response
-      // Support both `access_token` (returned by actual backend) and `token` fallback
       const token = response.data.access_token || response.data.token;
       
-      if (!token) {
-        throw new Error('Token not found in response');
-      }
+      if (!token) throw new Error('Token not found in response');
 
-      // Log user in and extract their role
       const userRole = login(token);
 
       if (userRole) {
-        // Redirect to corresponding dashboard
         if (userRole === 'admin') navigate('/admin');
         else if (userRole === 'company') navigate('/company');
         else if (userRole === 'student') navigate('/student');
@@ -68,74 +58,113 @@ const Login = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-5">
-          <div className="card shadow-sm border-0">
-            <div className="card-body p-4 p-md-5">
-              <h2 className="text-center mb-4 fw-bold">Sign In</h2>
-
-              {error && (
-                <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                  {error}
-                  <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setError('')}
-                    aria-label="Close"
-                  ></button>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} noValidate>
-                <div className="mb-3">
-                  <label htmlFor="emailInput" className="form-label">Email address</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    id="emailInput"
-                    placeholder="name@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label htmlFor="passwordInput" className="form-label">Password</label>
-                  <input
-                    type="password"
-                    className="form-control"
-                    id="passwordInput"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-primary w-100 py-2 fw-semibold"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                  ) : 'Login'}
-                </button>
-              </form>
-
-              <hr className="my-4" />
-
-              <div className="text-center small text-muted">
-                Don't have an account? <br />
-                <Link to="/register/student" className="text-decoration-none me-3">Register as Student</Link>
-                |
-                <Link to="/register/company" className="text-decoration-none ms-3">Register as Company</Link>
+    <div className="auth-wrapper fade-in">
+      <div className="row g-0 w-100">
+        
+        {/* Left Side: Branding Cover */}
+        <div className="col-lg-6 d-none d-lg-flex auth-cover">
+          <div className="position-relative z-1">
+            <h1 className="display-4 fw-bold mb-4">PlaceLink</h1>
+            <p className="lead fw-light px-5 mb-5">
+              The modern bridge connecting world-class talent with enterprise opportunities.
+            </p>
+            
+            <div className="d-flex justify-content-center gap-4 mt-4">
+              <div className="text-center">
+                <h3 className="fw-bold mb-1">500+</h3>
+                <p className="small opacity-75">Companies</p>
+              </div>
+              <div className="text-center">
+                <h3 className="fw-bold mb-1">10k+</h3>
+                <p className="small opacity-75">Placements</p>
+              </div>
+              <div className="text-center">
+                <h3 className="fw-bold mb-1">98%</h3>
+                <p className="small opacity-75">Success Rate</p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Right Side: Login Form */}
+        <div className="col-lg-6 auth-form-container">
+          <div className="w-100 mx-auto" style={{ maxWidth: '420px' }}>
+            <div className="text-center mb-5">
+              <h2 className="fw-bold text-dark mb-2">Welcome Back</h2>
+              <p className="text-muted">Please sign in to your account</p>
+            </div>
+
+            {error && (
+              <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                {error}
+                <button type="button" className="btn-close" onClick={() => setError('')} aria-label="Close"></button>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} noValidate>
+              <div className="form-floating mb-3">
+                <input
+                  type="email"
+                  className="form-control"
+                  id="emailInput"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <label htmlFor="emailInput">Email address</label>
+              </div>
+
+              <div className="form-floating mb-4">
+                <input
+                  type="password"
+                  className="form-control"
+                  id="passwordInput"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <label htmlFor="passwordInput">Password</label>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div className="form-check">
+                  <input className="form-check-input" type="checkbox" id="rememberMe" />
+                  <label className="form-check-label text-muted small" htmlFor="rememberMe">
+                    Remember me
+                  </label>
+                </div>
+                <a href="#" className="text-primary text-decoration-none small fw-semibold">Forgot password?</a>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary w-100 py-3 fw-bold fs-6 shadow-sm"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                ) : 'Sign In'}
+              </button>
+            </form>
+
+            <div className="mt-5 text-center">
+              <p className="text-muted small mb-2">Don't have an account?</p>
+              <div className="d-flex justify-content-center gap-3">
+                <Link to="/register/student" className="btn btn-outline-primary btn-sm px-3 rounded-pill fw-semibold">
+                  Student
+                </Link>
+                <Link to="/register/company" className="btn btn-outline-primary btn-sm px-3 rounded-pill fw-semibold">
+                  Recruiter
+                </Link>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
       </div>
     </div>
   );

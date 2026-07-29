@@ -21,9 +21,7 @@ const Sidebar = () => {
     }
   }, [isAuthenticated, role, location.pathname]);
 
-  if (!isAuthenticated || !role) {
-    return null;
-  }
+  if (!isAuthenticated || !role) return null;
 
   const handleLogout = () => {
     logout();
@@ -33,89 +31,93 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar d-flex flex-column">
       {/* Brand Header */}
-      <div className="p-3 border-bottom d-flex align-items-center gap-2" style={{ borderColor: 'var(--sidebar-border)' }}>
-        <div className="logo-box">EC</div>
+      <div className="p-4 border-bottom d-flex align-items-center gap-3">
+        <div className="bg-primary text-white rounded d-flex align-items-center justify-content-center shadow-sm" style={{ width: '36px', height: '36px', fontWeight: 'bold', fontSize: '1.2rem' }}>
+          P
+        </div>
         <div className="d-flex flex-column lh-1">
-          <span className="fw-bold text-truncate" style={{ fontSize: '14px', letterSpacing: '-0.3px' }}>EEC Placements</span>
-          <span className="text-muted" style={{ fontSize: '10px', marginTop: '2px' }}>Easwari Engineering</span>
+          <span className="fw-bold fs-5 text-dark" style={{ letterSpacing: '-0.5px' }}>PlaceLink</span>
+          <span className="text-muted" style={{ fontSize: '11px', marginTop: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Enterprise</span>
         </div>
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-grow-1 overflow-auto py-2">
+      <div className="flex-grow-1 overflow-auto p-3">
+        
         {role === 'admin' && (
           <>
-            <div className="nav-section-label">Overview</div>
-            <Link to="/admin" className={`sidebar-nav-item ${isActive('/admin') ? 'active' : ''}`}>
-              <span>📊</span> Dashboard
+            <div className="text-uppercase text-muted fw-bold mb-2 ps-3 mt-2" style={{ fontSize: '10px', letterSpacing: '1px' }}>Overview</div>
+            <Link to="/admin" className={`nav-link ${isActive('/admin') ? 'active' : ''}`}>
+              <i className="bi bi-grid-1x2-fill"></i> Dashboard
             </Link>
 
-            <div className="nav-section-label">Manage</div>
-            <Link to="/admin/companies/pending" className={`sidebar-nav-item ${isActive('/admin/companies/pending') ? 'active' : ''}`}>
-              <span>🏢</span> Pending Companies
+            <div className="text-uppercase text-muted fw-bold mb-2 ps-3 mt-4" style={{ fontSize: '10px', letterSpacing: '1px' }}>Manage</div>
+            <Link to="/admin/companies/pending" className={`nav-link ${isActive('/admin/companies/pending') ? 'active' : ''}`}>
+              <i className="bi bi-building-check"></i> Pending Companies
             </Link>
-            <Link to="/admin/drives/pending" className={`sidebar-nav-item ${isActive('/admin/drives/pending') ? 'active' : ''}`}>
-              <span>🎯</span> Pending Drives
+            <Link to="/admin/drives/pending" className={`nav-link ${isActive('/admin/drives/pending') ? 'active' : ''}`}>
+              <i className="bi bi-briefcase-fill"></i> Pending Drives
             </Link>
-            <Link to="/admin/students" className={`sidebar-nav-item ${isActive('/admin/students') ? 'active' : ''}`}>
-              <span>🎓</span> Students List
+            <Link to="/admin/students" className={`nav-link ${isActive('/admin/students') ? 'active' : ''}`}>
+              <i className="bi bi-people-fill"></i> Students List
             </Link>
           </>
         )}
 
         {role === 'company' && (
           <>
-            <div className="nav-section-label">Overview</div>
-            <Link to="/company" className={`sidebar-nav-item ${isActive('/company') ? 'active' : ''}`}>
-              <span>📊</span> Dashboard
+            <div className="text-uppercase text-muted fw-bold mb-2 ps-3 mt-2" style={{ fontSize: '10px', letterSpacing: '1px' }}>Overview</div>
+            <Link to="/company" className={`nav-link ${isActive('/company') ? 'active' : ''}`}>
+              <i className="bi bi-grid-1x2-fill"></i> Dashboard
             </Link>
 
-            <div className="nav-section-label">Drives</div>
-            <Link to="/company/drives/create" className={`sidebar-nav-item ${isActive('/company/drives/create') ? 'active' : ''}`}>
-              <span>➕</span> Create Drive
+            <div className="text-uppercase text-muted fw-bold mb-2 ps-3 mt-4" style={{ fontSize: '10px', letterSpacing: '1px' }}>Drives</div>
+            <Link to="/company/drives/create" className={`nav-link ${isActive('/company/drives/create') ? 'active' : ''}`}>
+              <i className="bi bi-plus-square-fill"></i> Post New Drive
             </Link>
-            <Link to="/company/drives" className={`sidebar-nav-item ${isActive('/company/drives') ? 'active' : ''}`}>
-              <span>💼</span> My Drives
+            <Link to="/company/drives" className={`nav-link ${isActive('/company/drives') ? 'active' : ''}`}>
+              <i className="bi bi-briefcase-fill"></i> My Drives
             </Link>
           </>
         )}
 
         {role === 'student' && (
           <>
-            <div className="nav-section-label">Overview</div>
-            <Link to="/student" className={`sidebar-nav-item ${isActive('/student') ? 'active' : ''}`}>
-              <span>📊</span> Dashboard
+            <div className="text-uppercase text-muted fw-bold mb-2 ps-3 mt-2" style={{ fontSize: '10px', letterSpacing: '1px' }}>Overview</div>
+            <Link to="/student" className={`nav-link ${isActive('/student') ? 'active' : ''}`}>
+              <i className="bi bi-grid-1x2-fill"></i> Dashboard
             </Link>
-            <Link to="/student/profile" className={`sidebar-nav-item ${isActive('/student/profile') ? 'active' : ''}`}>
-              <span>👤</span> My Profile
+            <Link to="/student/profile" className={`nav-link ${isActive('/student/profile') ? 'active' : ''}`}>
+              <i className="bi bi-person-badge-fill"></i> My Profile
               {completeness < 75 && (
-                <span className="ms-auto" style={{ color: '#d97706', fontSize: '12px' }} title="Profile incomplete">●</span>
+                <span className="badge bg-warning ms-auto rounded-circle p-1" title="Profile incomplete">!</span>
               )}
             </Link>
 
-            <div className="nav-section-label">Applications</div>
-            <Link to="/student/drives" className={`sidebar-nav-item ${isActive('/student/drives') ? 'active' : ''}`}>
-              <span>🔍</span> Browse Drives
+            <div className="text-uppercase text-muted fw-bold mb-2 ps-3 mt-4" style={{ fontSize: '10px', letterSpacing: '1px' }}>Applications</div>
+            <Link to="/student/drives" className={`nav-link ${isActive('/student/drives') ? 'active' : ''}`}>
+              <i className="bi bi-search"></i> Browse Drives
             </Link>
-            <Link to="/student/applications" className={`sidebar-nav-item ${isActive('/student/applications') ? 'active' : ''}`}>
-              <span>📝</span> My Applications
+            <Link to="/student/applications" className={`nav-link ${isActive('/student/applications') ? 'active' : ''}`}>
+              <i className="bi bi-file-earmark-check-fill"></i> My Applications
             </Link>
-            <Link to="/student/interviews" className={`sidebar-nav-item ${isActive('/student/interviews') ? 'active' : ''}`}>
-              <span>📅</span> My Interviews
+            <Link to="/student/interviews" className={`nav-link ${isActive('/student/interviews') ? 'active' : ''}`}>
+              <i className="bi bi-calendar2-check-fill"></i> My Interviews
             </Link>
           </>
         )}
       </div>
 
       {/* Logout Footer */}
-      <div className="p-3 border-top" style={{ borderColor: 'var(--sidebar-border)' }}>
+      <div className="p-3 border-top mt-auto">
         <button 
           onClick={handleLogout} 
-          className="sidebar-nav-item w-100 border-0 text-start bg-transparent text-danger px-2"
+          className="btn btn-light w-100 text-start text-danger d-flex align-items-center gap-2 border-0 shadow-none"
+          style={{ padding: '0.75rem 1.25rem', fontWeight: '500' }}
         >
-          <span>🚪</span> Sign Out
+          <i className="bi bi-box-arrow-right"></i> Sign Out
         </button>
       </div>
     </aside>

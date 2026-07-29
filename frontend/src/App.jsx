@@ -66,20 +66,33 @@ const MainLayout = ({ children }) => {
       <div className="main-content flex-grow-1 d-flex flex-column">
         {/* Topbar Header */}
         <header className="topbar">
-          <div className="d-flex align-items-center gap-2">
-            <span className="fw-bold fs-6">{getPageTitle(location.pathname)}</span>
-          </div>
           <div className="d-flex align-items-center gap-3">
-            <div className="text-end d-none d-md-block" style={{ fontSize: '12px' }}>
-              <span className="fw-semibold text-muted d-block">{currentTime.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              <span className="fw-bold" style={{ letterSpacing: '0.5px' }}>{currentTime.toLocaleTimeString()}</span>
+            <span className="fw-bold fs-5 text-dark" style={{ letterSpacing: '-0.3px' }}>
+              {getPageTitle(location.pathname)}
+            </span>
+          </div>
+          <div className="d-flex align-items-center gap-4">
+            <div className="text-end d-none d-md-block" style={{ fontSize: '13px' }}>
+              <span className="text-secondary fw-medium d-block mb-1">
+                {currentTime.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+              <span className="fw-bold text-dark font-monospace" style={{ letterSpacing: '0.5px' }}>
+                {currentTime.toLocaleTimeString()}
+              </span>
             </div>
+            
+            <div className="vr d-none d-md-block" style={{ height: '30px', opacity: 0.1 }}></div>
+            
             <ThemeToggle />
+            
+            <div className="d-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow-sm ms-2 cursor-pointer hover-lift" style={{ width: '40px', height: '40px', cursor: 'pointer' }}>
+              <i className="bi bi-person-fill fs-5"></i>
+            </div>
           </div>
         </header>
 
         {/* Main Content View */}
-        <main className="p-4 flex-grow-1">
+        <main className="p-4 flex-grow-1 fade-in" style={{ backgroundColor: 'var(--bg-main)' }}>
           {children}
         </main>
       </div>
