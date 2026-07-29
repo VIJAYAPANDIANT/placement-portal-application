@@ -126,35 +126,35 @@ const DriveApplicants = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'applied':
-        return <span className="status-pill pill-info">● Applied</span>;
+        return <span className="badge badge-soft-info px-2 py-1"><i className="bi bi-file-earmark-text me-1"></i>Applied</span>;
       case 'shortlisted':
-        return <span className="status-pill pill-purple">● Shortlisted</span>;
+        return <span className="badge badge-soft-warning px-2 py-1"><i className="bi bi-star-fill me-1"></i>Shortlisted</span>;
       case 'selected':
-        return <span className="status-pill pill-success">● Selected</span>;
+        return <span className="badge badge-soft-success px-2 py-1"><i className="bi bi-trophy-fill me-1"></i>Selected</span>;
       case 'rejected':
-        return <span className="status-pill pill-danger">● Rejected</span>;
+        return <span className="badge badge-soft-danger px-2 py-1"><i className="bi bi-x-circle-fill me-1"></i>Rejected</span>;
       default:
-        return <span className="status-pill pill-warning">● {status}</span>;
+        return <span className="badge badge-soft-secondary px-2 py-1">{status}</span>;
     }
   };
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex flex-column justify-content-center align-items-center py-5 fade-in">
+        <div className="spinner-border text-primary shadow-sm" role="status" style={{ width: '3rem', height: '3rem' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-3 text-muted">Retrieving applicant directory...</p>
+        <p className="mt-3 text-muted fw-medium">Retrieving applicant directory...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-3">{error}</p>
-        <button className="btn btn-sm btn-outline-secondary" onClick={() => navigate('/company/drives')}>
-          Back to My Drives
+      <div className="card border-danger shadow-sm p-4 text-center fade-in">
+        <p className="text-danger fw-semibold mb-3"><i className="bi bi-exclamation-octagon-fill me-2"></i>{error}</p>
+        <button className="btn btn-sm btn-outline-secondary rounded-pill px-4 mx-auto" onClick={() => navigate('/company/drives')}>
+          <i className="bi bi-arrow-left me-2"></i>Back to My Drives
         </button>
       </div>
     );
@@ -163,107 +163,115 @@ const DriveApplicants = () => {
   const capacityProgress = Math.min(Math.round((applicants.length / 50) * 100), 100);
 
   return (
-    <div>
+    <div className="fade-in">
       <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-          <button className="btn btn-sm btn-outline-secondary mb-2" style={{ borderRadius: '6px' }} onClick={() => navigate('/company/drives')}>
-            &larr; Back to My Drives
+          <button className="btn btn-sm btn-link text-secondary px-0 text-decoration-none mb-2" onClick={() => navigate('/company/drives')}>
+            <i className="bi bi-arrow-left me-2"></i>Back to My Drives
           </button>
-          <h4 className="fw-bold mb-0">Drive Candidates & Applications</h4>
+          <h4 className="fw-bold text-dark mb-0">Drive Candidates & Applications</h4>
         </div>
         <button
-          className="btn btn-primary fw-bold btn-sm px-3 py-2"
-          style={{ borderRadius: '8px' }}
+          className="btn btn-primary shadow-sm fw-semibold rounded-pill px-4"
           onClick={() => setShowModal(true)}
         >
-          📅 Schedule Drive Interview
+          <i className="bi bi-calendar-event me-2"></i>Schedule Interview
         </button>
       </div>
 
-      <div className="panel-card p-3 mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-1" style={{ fontSize: '12px' }}>
-          <span className="fw-bold text-muted">APPLICATION CAPACITY VOLUME</span>
-          <span className="fw-bold text-primary">{applicants.length} / 50 Applications</span>
-        </div>
-        <div className="progress" style={{ height: '8px', borderRadius: '4px', background: 'var(--table-hover)' }}>
-          <div className="progress-bar bg-primary" role="progressbar" style={{ width: `${capacityProgress}%` }}></div>
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="fw-bold text-muted small" style={{ letterSpacing: '0.5px' }}>APPLICATION CAPACITY VOLUME</span>
+            <span className="fw-bold text-primary">{applicants.length} / 50 Applications</span>
+          </div>
+          <div className="progress" style={{ height: '10px', borderRadius: '5px', backgroundColor: 'var(--bs-primary-bg-subtle)' }}>
+            <div className="progress-bar bg-primary rounded-pill" role="progressbar" style={{ width: `${capacityProgress}%` }}></div>
+          </div>
         </div>
       </div>
 
       {alert && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show mb-4`} role="alert">
+        <div className={`alert alert-${alert.type} alert-dismissible fade show shadow-sm mb-4`} role="alert">
+          {alert.type === 'success' ? <i className="bi bi-check-circle-fill me-2"></i> : <i className="bi bi-exclamation-triangle-fill me-2"></i>}
           {alert.message}
           <button type="button" className="btn-close" onClick={() => setAlert(null)} aria-label="Close"></button>
         </div>
       )}
 
-      <div className="panel-card">
-        <div className="panel-header">
-          <h5 className="panel-title">Registered Student Candidates</h5>
-          <span className="status-pill pill-info">👥 {applicants.length} Total Applicants</span>
+      <div className="card border-0 shadow-sm">
+        <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+          <h5 className="fw-bold text-dark mb-0">Registered Student Candidates</h5>
+          <span className="badge badge-soft-primary px-3 py-2 fs-6">
+            <i className="bi bi-people-fill me-2"></i>{applicants.length} Total
+          </span>
         </div>
 
         {applicants.length === 0 ? (
-          <div className="text-center py-5">
-            <div style={{ fontSize: '2.5rem' }}>📋</div>
-            <p className="mt-3 fw-semibold mb-1">No applications received yet</p>
-            <small className="text-muted">Eligible students will appear here once they apply to this drive.</small>
+          <div className="card-body text-center py-5">
+            <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{ width: '80px', height: '80px' }}>
+              <i className="bi bi-inbox text-muted" style={{ fontSize: '2.5rem' }}></i>
+            </div>
+            <h5 className="fw-bold text-dark mb-2">No Applications Received Yet</h5>
+            <p className="text-muted mb-0">Eligible students will appear here once they apply to this drive.</p>
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="enhanced-table">
-              <thead>
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
                 <tr>
-                  <th>#</th>
-                  <th>Student Name</th>
-                  <th>Roll Number</th>
-                  <th>Branch</th>
-                  <th>CGPA</th>
-                  <th>Status</th>
-                  <th className="text-end">Actions</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">#</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">STUDENT NAME</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">ROLL NUMBER</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">BRANCH</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">CGPA</th>
+                  <th className="px-4 py-3 text-muted small fw-bold">STATUS</th>
+                  <th className="px-4 py-3 text-muted small fw-bold text-end">ACTIONS</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="border-top-0">
                 {applicants.map((app, idx) => (
                   <tr key={app.application_id}>
-                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
-                    <td className="fw-bold">{app.student_name}</td>
-                    <td>{app.roll_number}</td>
-                    <td><span className="status-pill pill-purple">{app.branch}</span></td>
-                    <td className="fw-bold">{app.cgpa}</td>
-                    <td>{getStatusBadge(app.application_status)}</td>
-                    <td className="text-end">
-                      <button
-                        className="btn btn-sm btn-info text-white me-1 px-2 py-1"
-                        style={{ borderRadius: '6px', fontSize: '11px', fontWeight: 600 }}
-                        onClick={() => handleOpenProfileModal(app.student_id, app.application_id)}
-                      >
-                        👤 View Profile
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-primary me-1 px-2 py-1"
-                        style={{ borderRadius: '6px', fontSize: '11px' }}
-                        onClick={() => handleUpdateStatus(app.application_id, 'shortlisted')}
-                        disabled={app.application_status === 'shortlisted'}
-                      >
-                        Shortlist
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-success me-1 px-2 py-1"
-                        style={{ borderRadius: '6px', fontSize: '11px' }}
-                        onClick={() => handleUpdateStatus(app.application_id, 'selected')}
-                        disabled={app.application_status === 'selected'}
-                      >
-                        Select
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-danger px-2 py-1"
-                        style={{ borderRadius: '6px', fontSize: '11px' }}
-                        onClick={() => handleUpdateStatus(app.application_id, 'rejected')}
-                        disabled={app.application_status === 'rejected'}
-                      >
-                        Reject
-                      </button>
+                    <td className="px-4 text-muted fw-semibold">{idx + 1}</td>
+                    <td className="px-4 fw-bold text-dark">{app.student_name}</td>
+                    <td className="px-4 text-secondary">{app.roll_number}</td>
+                    <td className="px-4"><span className="badge badge-soft-primary">{app.branch}</span></td>
+                    <td className="px-4 fw-bold text-dark">{app.cgpa}</td>
+                    <td className="px-4">{getStatusBadge(app.application_status)}</td>
+                    <td className="px-4 text-end">
+                      <div className="btn-group shadow-sm">
+                        <button
+                          className="btn btn-sm btn-light text-primary border fw-semibold px-3"
+                          onClick={() => handleOpenProfileModal(app.student_id, app.application_id)}
+                          title="View Profile"
+                        >
+                          <i className="bi bi-person-badge"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-light text-warning border fw-semibold px-3"
+                          onClick={() => handleUpdateStatus(app.application_id, 'shortlisted')}
+                          disabled={app.application_status === 'shortlisted' || app.application_status === 'selected'}
+                          title="Shortlist"
+                        >
+                          <i className="bi bi-star"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-light text-success border fw-semibold px-3"
+                          onClick={() => handleUpdateStatus(app.application_id, 'selected')}
+                          disabled={app.application_status === 'selected'}
+                          title="Select"
+                        >
+                          <i className="bi bi-check-lg"></i>
+                        </button>
+                        <button
+                          className="btn btn-sm btn-light text-danger border fw-semibold px-3"
+                          onClick={() => handleUpdateStatus(app.application_id, 'rejected')}
+                          disabled={app.application_status === 'rejected'}
+                          title="Reject"
+                        >
+                          <i className="bi bi-x-lg"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -275,118 +283,150 @@ const DriveApplicants = () => {
 
       {/* Candidate Profile Modal for Company */}
       {selectedStudentId && (
-        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
-          <div className="modal-dialog modal-dialog-centered modal-lg" role="document">
-            <div className="modal-content panel-card border-0 shadow-lg">
-              <div className="modal-header panel-header">
-                <h5 className="modal-title fw-bold">🎓 Candidate Profile Evaluation</h5>
-                <button type="button" className="btn-close" onClick={() => setSelectedStudentId(null)} aria-label="Close"></button>
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)' }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" role="document">
+            <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+              <div className="modal-header bg-white border-bottom py-3 px-4">
+                <h5 className="modal-title fw-bold text-dark"><i className="bi bi-person-lines-fill text-primary me-2"></i>Candidate Profile Evaluation</h5>
+                <button type="button" className="btn-close shadow-none" onClick={() => setSelectedStudentId(null)} aria-label="Close"></button>
               </div>
-              <div className="modal-body p-4">
+              <div className="modal-body p-4 p-md-5 bg-light">
                 {profileModalLoading ? (
-                  <div className="text-center py-4">
-                    <div className="spinner-border text-primary" role="status"></div>
-                    <p className="mt-2 text-muted small">Loading profile details...</p>
+                  <div className="text-center py-5">
+                    <div className="spinner-border text-primary shadow-sm" role="status" style={{ width: '3rem', height: '3rem' }}></div>
+                    <p className="mt-3 text-muted fw-medium">Loading profile details...</p>
                   </div>
                 ) : profileModalError ? (
-                  <div className="alert alert-danger mb-0">{profileModalError}</div>
+                  <div className="alert alert-danger shadow-sm mb-0"><i className="bi bi-exclamation-triangle-fill me-2"></i>{profileModalError}</div>
                 ) : profileModalData && (
-                  <div>
-                    <div className="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3">
-                      <div>
-                        <h4 className="fw-bold mb-1">{profileModalData.name}</h4>
-                        <span className="text-muted small" style={{ fontSize: '12px' }}>Roll Number: <strong>{profileModalData.roll_number}</strong> | Branch: <strong>{profileModalData.branch}</strong></span>
-                      </div>
-                      <span className="status-pill pill-success" style={{ fontSize: '14px' }}>
-                        CGPA: {profileModalData.cgpa} / 10.0
-                      </span>
-                    </div>
-
-                    <div className="row g-3 mb-3">
-                      <div className="col-md-7">
-                        <h6 className="fw-bold text-muted" style={{ fontSize: '11px' }}>ABOUT CANDIDATE</h6>
-                        <p className="small mb-3" style={{ fontSize: '13px', color: 'var(--bs-body-color)', whiteSpace: 'pre-line' }}>
-                          {profileModalData.bio || 'No bio provided.'}
-                        </p>
-
-                        <h6 className="fw-bold text-muted mb-2" style={{ fontSize: '11px' }}>TECHNICAL SKILLS</h6>
-                        <div className="d-flex flex-wrap gap-1 mb-3">
-                          {profileModalData.skills && profileModalData.skills.length > 0 ? (
-                            profileModalData.skills.map((s, idx) => (
-                              <span key={idx} className="status-pill pill-purple">{s}</span>
-                            ))
-                          ) : (
-                            <span className="text-muted small">No skills listed</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="col-md-5 border-start ps-3">
-                        <h6 className="fw-bold text-muted mb-2" style={{ fontSize: '11px' }}>RESUME & LINKS</h6>
-                        {profileModalData.resume_url ? (
-                          <button 
-                            className="btn btn-sm btn-primary w-100 mb-3 fw-bold py-2"
-                            style={{ borderRadius: '6px', fontSize: '12px' }}
-                            onClick={() => window.open(`http://localhost:5000/${profileModalData.resume_url}`, '_blank')}
-                          >
-                            📄 View Candidate Resume PDF
-                          </button>
-                        ) : (
-                          <div className="alert alert-warning py-2 small mb-3" style={{ fontSize: '11px' }}>
-                            ⚠️ No resume uploaded by student
+                  <div className="fade-in">
+                    
+                    <div className="card border-0 shadow-sm mb-4">
+                      <div className="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div className="d-flex align-items-center gap-3">
+                          <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: '60px', height: '60px', fontSize: '1.5rem' }}>
+                            <i className="bi bi-person-fill"></i>
                           </div>
-                        )}
-
-                        <div className="d-flex flex-column gap-2" style={{ fontSize: '12px' }}>
-                          {profileModalData.linkedin_url ? (
-                            <a href={profileModalData.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-decoration-none fw-semibold">
-                              🔗 LinkedIn Profile
-                            </a>
-                          ) : <span className="text-muted">🔗 LinkedIn: Not provided</span>}
-
-                          {profileModalData.github_url ? (
-                            <a href={profileModalData.github_url} target="_blank" rel="noopener noreferrer" className="text-decoration-none fw-semibold">
-                              🐙 GitHub Repository
-                            </a>
-                          ) : <span className="text-muted">🐙 GitHub: Not provided</span>}
-
-                          {profileModalData.portfolio_url ? (
-                            <a href={profileModalData.portfolio_url} target="_blank" rel="noopener noreferrer" className="text-decoration-none fw-semibold">
-                              🌐 Portfolio Website
-                            </a>
-                          ) : <span className="text-muted">🌐 Portfolio: Not provided</span>}
+                          <div>
+                            <h4 className="fw-black text-dark mb-1">{profileModalData.name}</h4>
+                            <div className="d-flex flex-wrap gap-2 text-secondary small fw-medium">
+                              <span><i className="bi bi-hash me-1"></i>{profileModalData.roll_number}</span>
+                              <span>&bull;</span>
+                              <span><i className="bi bi-building me-1"></i>{profileModalData.branch}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-md-end text-center p-3 bg-light rounded border">
+                          <span className="d-block text-muted small fw-bold mb-1">CURRENT CGPA</span>
+                          <span className="fs-3 fw-black text-success lh-1">{profileModalData.cgpa} <span className="fs-6 text-muted">/ 10</span></span>
                         </div>
                       </div>
                     </div>
+
+                    <div className="row g-4">
+                      <div className="col-md-7">
+                        <div className="card border-0 shadow-sm h-100">
+                          <div className="card-body p-4">
+                            <h6 className="fw-bold text-dark mb-3"><i className="bi bi-file-person me-2 text-primary"></i>About Candidate</h6>
+                            <p className="text-secondary mb-4" style={{ fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                              {profileModalData.bio || 'No bio provided.'}
+                            </p>
+
+                            <h6 className="fw-bold text-dark mb-3"><i className="bi bi-code-slash me-2 text-primary"></i>Technical Skills</h6>
+                            <div className="d-flex flex-wrap gap-2">
+                              {profileModalData.skills && profileModalData.skills.length > 0 ? (
+                                profileModalData.skills.map((s, idx) => (
+                                  <span key={idx} className="badge badge-soft-primary px-3 py-2 fs-6">{s}</span>
+                                ))
+                              ) : (
+                                <span className="text-muted fst-italic">No skills listed</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="col-md-5">
+                        <div className="card border-0 shadow-sm h-100">
+                          <div className="card-body p-4">
+                            <h6 className="fw-bold text-dark mb-3"><i className="bi bi-link-45deg me-2 text-primary"></i>Documents & Links</h6>
+                            
+                            {profileModalData.resume_url ? (
+                              <button 
+                                className="btn btn-primary w-100 mb-4 fw-semibold py-2 shadow-sm rounded-pill d-flex align-items-center justify-content-center gap-2"
+                                onClick={() => window.open(`http://localhost:5000/${profileModalData.resume_url}`, '_blank')}
+                              >
+                                <i className="bi bi-file-earmark-pdf-fill fs-5"></i> View Candidate Resume
+                              </button>
+                            ) : (
+                              <div className="alert alert-warning py-2 mb-4 d-flex align-items-center gap-2">
+                                <i className="bi bi-exclamation-triangle-fill"></i> No resume uploaded
+                              </div>
+                            )}
+
+                            <div className="d-flex flex-column gap-3">
+                              <a 
+                                href={profileModalData.linkedin_url || '#'} 
+                                target={profileModalData.linkedin_url ? "_blank" : "_self"} 
+                                rel="noopener noreferrer" 
+                                className={`text-decoration-none d-flex align-items-center gap-3 p-2 rounded ${profileModalData.linkedin_url ? 'text-dark card-hover bg-white border shadow-sm' : 'text-muted bg-light'}`}
+                              >
+                                <i className="bi bi-linkedin fs-4 text-primary"></i>
+                                <span className="fw-medium">LinkedIn Profile</span>
+                              </a>
+                              
+                              <a 
+                                href={profileModalData.github_url || '#'} 
+                                target={profileModalData.github_url ? "_blank" : "_self"} 
+                                rel="noopener noreferrer" 
+                                className={`text-decoration-none d-flex align-items-center gap-3 p-2 rounded ${profileModalData.github_url ? 'text-dark card-hover bg-white border shadow-sm' : 'text-muted bg-light'}`}
+                              >
+                                <i className="bi bi-github fs-4 text-dark"></i>
+                                <span className="fw-medium">GitHub Repository</span>
+                              </a>
+
+                              <a 
+                                href={profileModalData.portfolio_url || '#'} 
+                                target={profileModalData.portfolio_url ? "_blank" : "_self"} 
+                                rel="noopener noreferrer" 
+                                className={`text-decoration-none d-flex align-items-center gap-3 p-2 rounded ${profileModalData.portfolio_url ? 'text-dark card-hover bg-white border shadow-sm' : 'text-muted bg-light'}`}
+                              >
+                                <i className="bi bi-globe fs-4 text-info"></i>
+                                <span className="fw-medium">Portfolio Website</span>
+                              </a>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 )}
               </div>
 
-              <div className="modal-footer p-3 border-top d-flex justify-content-between" style={{ borderColor: 'var(--card-border)' }}>
-                <button type="button" className="btn btn-sm btn-outline-secondary" style={{ borderRadius: '6px' }} onClick={() => setSelectedStudentId(null)}>
-                  Close Profile
+              <div className="modal-footer bg-white p-3 border-top d-flex justify-content-between">
+                <button type="button" className="btn btn-light fw-semibold rounded-pill px-4 border" onClick={() => setSelectedStudentId(null)}>
+                  Close
                 </button>
                 <div className="d-flex gap-2">
                   <button 
-                    className="btn btn-sm btn-primary px-3 fw-bold" 
-                    style={{ borderRadius: '6px' }}
+                    className="btn btn-warning fw-semibold rounded-pill px-4 shadow-sm text-dark d-flex align-items-center gap-2"
                     onClick={() => handleUpdateStatus(selectedAppId, 'shortlisted')}
                   >
-                    Shortlist Candidate
+                    <i className="bi bi-star-fill"></i> Shortlist
                   </button>
                   <button 
-                    className="btn btn-sm btn-success px-3 fw-bold" 
-                    style={{ borderRadius: '6px' }}
+                    className="btn btn-success fw-semibold rounded-pill px-4 shadow-sm d-flex align-items-center gap-2"
                     onClick={() => handleUpdateStatus(selectedAppId, 'selected')}
                   >
-                    Select Candidate
+                    <i className="bi bi-trophy-fill"></i> Select
                   </button>
                   <button 
-                    className="btn btn-sm btn-outline-danger px-3 fw-bold" 
-                    style={{ borderRadius: '6px' }}
+                    className="btn btn-danger fw-semibold rounded-pill px-4 shadow-sm d-flex align-items-center gap-2"
                     onClick={() => handleUpdateStatus(selectedAppId, 'rejected')}
                   >
-                    Reject Candidate
+                    <i className="bi bi-x-circle-fill"></i> Reject
                   </button>
                 </div>
               </div>
@@ -397,86 +437,104 @@ const DriveApplicants = () => {
 
       {/* Schedule Interview Modal */}
       {showModal && (
-        <>
-          <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
-            <div className="modal-dialog modal-dialog-centered" role="document">
-              <div className="modal-content panel-card border-0 shadow-lg">
-                <div className="modal-header panel-header">
-                  <h5 className="modal-title fw-bold">🗓️ Schedule Drive Interview</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowModal(false)} aria-label="Close"></button>
-                </div>
-                <form onSubmit={handleScheduleInterview}>
-                  <div className="modal-body p-4">
-                    <div className="mb-3">
-                      <label htmlFor="interview_date" className="form-label fw-bold" style={{ fontSize: '12px' }}>INTERVIEW DATE *</label>
-                      <input
-                        type="date"
-                        className="form-control"
-                        id="interview_date"
-                        name="interview_date"
-                        value={interviewData.interview_date}
-                        onChange={handleModalChange}
-                        required
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor="interview_mode" className="form-label fw-bold" style={{ fontSize: '12px' }}>INTERVIEW MODE *</label>
-                      <select
-                        className="form-select"
-                        id="interview_mode"
-                        name="interview_mode"
-                        value={interviewData.interview_mode}
-                        onChange={handleModalChange}
-                        required
-                      >
-                        <option value="online">Online</option>
-                        <option value="offline">Offline</option>
-                      </select>
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor="location_or_link" className="form-label fw-bold" style={{ fontSize: '12px' }}>
-                        {interviewData.interview_mode === 'online' ? 'MEETING LINK' : 'CAMPUS VENUE / LOCATION'}
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="location_or_link"
-                        name="location_or_link"
-                        value={interviewData.location_or_link}
-                        onChange={handleModalChange}
-                        placeholder={interviewData.interview_mode === 'online' ? 'e.g. Google Meet or Zoom URL' : 'e.g. Placement Cell Hall A'}
-                      />
-                    </div>
-
-                    <div className="mb-3">
-                      <label htmlFor="notes" className="form-label fw-bold" style={{ fontSize: '12px' }}>INSTRUCTIONS & NOTES</label>
-                      <textarea
-                        className="form-control"
-                        id="notes"
-                        name="notes"
-                        rows="3"
-                        value={interviewData.notes}
-                        onChange={handleModalChange}
-                        placeholder="Topics to prepare, documentation required..."
-                      ></textarea>
-                    </div>
-                  </div>
-                  <div className="modal-footer p-3 border-top" style={{ borderColor: 'var(--card-border)' }}>
-                    <button type="button" className="btn btn-sm btn-outline-secondary" style={{ borderRadius: '6px' }} onClick={() => setShowModal(false)}>
-                      Cancel
-                    </button>
-                    <button type="submit" className="btn btn-sm btn-primary px-4 fw-bold" style={{ borderRadius: '6px' }} disabled={modalLoading}>
-                      {modalLoading ? 'Scheduling...' : 'Confirm & Schedule'}
-                    </button>
-                  </div>
-                </form>
+        <div className="modal fade show d-block" tabIndex="-1" role="dialog" style={{ backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)' }}>
+          <div className="modal-dialog modal-dialog-centered" role="document">
+            <div className="modal-content border-0 shadow-lg" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+              <div className="modal-header bg-white border-bottom py-3 px-4">
+                <h5 className="modal-title fw-bold text-dark"><i className="bi bi-calendar-plus text-primary me-2"></i>Schedule Drive Interview</h5>
+                <button type="button" className="btn-close shadow-none" onClick={() => setShowModal(false)} aria-label="Close"></button>
               </div>
+              <form onSubmit={handleScheduleInterview}>
+                <div className="modal-body p-4 bg-light">
+                  
+                  <div className="card border-0 shadow-sm mb-0">
+                    <div className="card-body p-4">
+                      <div className="mb-4">
+                        <label htmlFor="interview_date" className="form-label fw-bold text-dark small">INTERVIEW DATE <span className="text-danger">*</span></label>
+                        <div className="input-group shadow-sm">
+                          <span className="input-group-text bg-light border-end-0"><i className="bi bi-calendar-date text-primary"></i></span>
+                          <input
+                            type="datetime-local"
+                            className="form-control border-start-0 ps-0"
+                            id="interview_date"
+                            name="interview_date"
+                            value={interviewData.interview_date}
+                            onChange={handleModalChange}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <label htmlFor="interview_mode" className="form-label fw-bold text-dark small">INTERVIEW MODE <span className="text-danger">*</span></label>
+                        <div className="input-group shadow-sm">
+                          <span className="input-group-text bg-light border-end-0"><i className="bi bi-display text-primary"></i></span>
+                          <select
+                            className="form-select border-start-0 ps-0"
+                            id="interview_mode"
+                            name="interview_mode"
+                            value={interviewData.interview_mode}
+                            onChange={handleModalChange}
+                            required
+                          >
+                            <option value="online">Online (Virtual)</option>
+                            <option value="offline">Offline (In-Person)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <label htmlFor="location_or_link" className="form-label fw-bold text-dark small">
+                          {interviewData.interview_mode === 'online' ? 'MEETING LINK ' : 'CAMPUS VENUE / LOCATION '}
+                          <span className="text-danger">*</span>
+                        </label>
+                        <div className="input-group shadow-sm">
+                          <span className="input-group-text bg-light border-end-0">
+                            {interviewData.interview_mode === 'online' ? <i className="bi bi-link-45deg text-primary"></i> : <i className="bi bi-geo-alt-fill text-primary"></i>}
+                          </span>
+                          <input
+                            type="text"
+                            className="form-control border-start-0 ps-0"
+                            id="location_or_link"
+                            name="location_or_link"
+                            value={interviewData.location_or_link}
+                            onChange={handleModalChange}
+                            placeholder={interviewData.interview_mode === 'online' ? 'e.g. Google Meet or Zoom URL' : 'e.g. Placement Cell Hall A'}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mb-2">
+                        <label htmlFor="notes" className="form-label fw-bold text-dark small">INSTRUCTIONS & NOTES</label>
+                        <textarea
+                          className="form-control shadow-sm"
+                          id="notes"
+                          name="notes"
+                          rows="3"
+                          value={interviewData.notes}
+                          onChange={handleModalChange}
+                          placeholder="Topics to prepare, documentation required..."
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+                <div className="modal-footer bg-white p-3 border-top">
+                  <button type="button" className="btn btn-light fw-semibold rounded-pill px-4 border" onClick={() => setShowModal(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary fw-bold rounded-pill px-4 shadow-sm" disabled={modalLoading}>
+                    {modalLoading ? <><span className="spinner-border spinner-border-sm me-2"></span>Scheduling...</> : <><i className="bi bi-calendar-check me-2"></i>Confirm & Schedule</>}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </>
+        </div>
       )}
+
     </div>
   );
 };

@@ -62,7 +62,7 @@ const CreateDrive = () => {
       const res = await api.post('/company/drives', payload);
       
       if (res.status === 201) {
-        setSuccessMessage('Drive submitted for Admin approval');
+        setSuccessMessage('Drive submitted successfully. Waiting for Admin approval.');
         setFormData(initialFormState);
       }
     } catch (err) {
@@ -74,92 +74,112 @@ const CreateDrive = () => {
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-9">
-        <div className="panel-card">
-          <div className="panel-header">
-            <h5 className="panel-title">📢 Post New Placement Drive</h5>
-            <span className="status-pill pill-info">EEC Placements Partner</span>
+    <div className="row justify-content-center fade-in">
+      <div className="col-lg-9 col-xl-8">
+        
+        <div className="mb-4">
+          <h4 className="fw-bold text-dark mb-1">Post New Placement Drive</h4>
+          <p className="text-secondary mb-0" style={{ fontSize: '0.95rem' }}>Create a new recruitment drive. Your listing will be published once approved by the placement cell.</p>
+        </div>
+
+        {successMessage && (
+          <div className="alert alert-success alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i className="bi bi-check-circle-fill me-2"></i>
+            {successMessage}
+            <button type="button" className="btn-close" onClick={() => setSuccessMessage(null)} aria-label="Close"></button>
           </div>
-          <div className="panel-body">
-            {successMessage && (
-              <div className="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                <strong>Success!</strong> {successMessage}
-                <button type="button" className="btn-close" onClick={() => setSuccessMessage(null)} aria-label="Close"></button>
-              </div>
-            )}
+        )}
 
-            {errorMessage && (
-              <div className="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-                <strong>Error:</strong> {errorMessage}
-                <button type="button" className="btn-close" onClick={() => setErrorMessage(null)} aria-label="Close"></button>
-              </div>
-            )}
+        {errorMessage && (
+          <div className="alert alert-danger alert-dismissible fade show mb-4 shadow-sm" role="alert">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            {errorMessage}
+            <button type="button" className="btn-close" onClick={() => setErrorMessage(null)} aria-label="Close"></button>
+          </div>
+        )}
 
+        <div className="card border-0 shadow-sm">
+          <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 className="fw-bold text-dark mb-0">Drive Details</h5>
+            <span className="badge badge-soft-primary px-3 py-2 fs-6">
+              <i className="bi bi-shield-check me-2"></i>Verified Partner
+            </span>
+          </div>
+          
+          <div className="card-body p-4 p-md-5">
             <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="job_title" className="form-label fw-bold" style={{ fontSize: '12px' }}>JOB TITLE *</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="job_title"
-                  name="job_title"
-                  value={formData.job_title}
-                  onChange={handleChange}
-                  placeholder="e.g. Associate Software Development Engineer"
-                  required
-                />
-              </div>
-
-              <div className="row g-3 mb-3">
-                <div className="col-md-6">
-                  <label htmlFor="package_lpa" className="form-label fw-bold" style={{ fontSize: '12px' }}>PACKAGE (LPA) *</label>
+              <div className="mb-4">
+                <label htmlFor="job_title" className="form-label fw-bold text-dark small">JOB TITLE <span className="text-danger">*</span></label>
+                <div className="input-group shadow-sm">
+                  <span className="input-group-text bg-light border-end-0"><i className="bi bi-briefcase-fill text-muted"></i></span>
                   <input
-                    type="number"
-                    className="form-control"
-                    id="package_lpa"
-                    name="package_lpa"
-                    value={formData.package_lpa}
+                    type="text"
+                    className="form-control border-start-0 ps-0"
+                    id="job_title"
+                    name="job_title"
+                    value={formData.job_title}
                     onChange={handleChange}
-                    placeholder="e.g. 8.5"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label htmlFor="eligibility_cgpa" className="form-label fw-bold" style={{ fontSize: '12px' }}>MINIMUM CGPA *</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    id="eligibility_cgpa"
-                    name="eligibility_cgpa"
-                    value={formData.eligibility_cgpa}
-                    onChange={handleChange}
-                    placeholder="e.g. 7.5"
-                    min="0"
-                    max="10"
-                    step="0.1"
+                    placeholder="e.g. Associate Software Development Engineer"
                     required
                   />
                 </div>
               </div>
 
-              <div className="mb-3">
-                <label className="form-label fw-bold d-block" style={{ fontSize: '12px' }}>ELIGIBLE ACADEMIC BRANCHES *</label>
-                <div className="p-3 border rounded" style={{ background: 'var(--table-hover)', borderColor: 'var(--card-border)' }}>
-                  <div className="row">
+              <div className="row g-4 mb-4">
+                <div className="col-md-6">
+                  <label htmlFor="package_lpa" className="form-label fw-bold text-dark small">PACKAGE (LPA) <span className="text-danger">*</span></label>
+                  <div className="input-group shadow-sm">
+                    <span className="input-group-text bg-light border-end-0"><i className="bi bi-cash-stack text-success"></i></span>
+                    <input
+                      type="number"
+                      className="form-control border-start-0 ps-0"
+                      id="package_lpa"
+                      name="package_lpa"
+                      value={formData.package_lpa}
+                      onChange={handleChange}
+                      placeholder="e.g. 8.5"
+                      min="0"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="col-md-6">
+                  <label htmlFor="eligibility_cgpa" className="form-label fw-bold text-dark small">MINIMUM CGPA <span className="text-danger">*</span></label>
+                  <div className="input-group shadow-sm">
+                    <span className="input-group-text bg-light border-end-0"><i className="bi bi-mortarboard-fill text-warning"></i></span>
+                    <input
+                      type="number"
+                      className="form-control border-start-0 ps-0"
+                      id="eligibility_cgpa"
+                      name="eligibility_cgpa"
+                      value={formData.eligibility_cgpa}
+                      onChange={handleChange}
+                      placeholder="e.g. 7.5"
+                      min="0"
+                      max="10"
+                      step="0.1"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark small">ELIGIBLE ACADEMIC BRANCHES <span className="text-danger">*</span></label>
+                <div className="bg-light p-4 rounded border">
+                  <div className="row g-3">
                     {branchesOptions.map(branch => (
-                      <div key={branch} className="col-md-4 col-6 mb-2">
-                        <div className="form-check">
+                      <div key={branch} className="col-md-4 col-6">
+                        <div className="form-check custom-checkbox">
                           <input
-                            className="form-check-input"
+                            className="form-check-input shadow-sm"
                             type="checkbox"
                             id={`branch-${branch}`}
                             checked={formData.eligible_branches.includes(branch)}
                             onChange={() => handleCheckboxChange(branch)}
                           />
-                          <label className="form-check-label ps-1" style={{ fontSize: '13px' }} htmlFor={`branch-${branch}`}>
+                          <label className="form-check-label fw-semibold text-secondary ps-2" htmlFor={`branch-${branch}`}>
                             {branch}
                           </label>
                         </div>
@@ -169,51 +189,51 @@ const CreateDrive = () => {
                 </div>
               </div>
 
-              <div className="mb-3">
-                <label htmlFor="application_deadline" className="form-label fw-bold" style={{ fontSize: '12px' }}>APPLICATION DEADLINE *</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  id="application_deadline"
-                  name="application_deadline"
-                  value={formData.application_deadline}
-                  onChange={handleChange}
-                  required
-                />
+              <div className="mb-4">
+                <label htmlFor="application_deadline" className="form-label fw-bold text-dark small">APPLICATION DEADLINE <span className="text-danger">*</span></label>
+                <div className="input-group shadow-sm">
+                  <span className="input-group-text bg-light border-end-0"><i className="bi bi-calendar-event text-primary"></i></span>
+                  <input
+                    type="date"
+                    className="form-control border-start-0 ps-0"
+                    id="application_deadline"
+                    name="application_deadline"
+                    value={formData.application_deadline}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="mb-4">
-                <label htmlFor="job_description" className="form-label fw-bold" style={{ fontSize: '12px' }}>JOB DESCRIPTION & REQUIREMENTS *</label>
+              <div className="mb-5">
+                <label htmlFor="job_description" className="form-label fw-bold text-dark small">JOB DESCRIPTION & REQUIREMENTS <span className="text-danger">*</span></label>
                 <textarea
-                  className="form-control"
+                  className="form-control shadow-sm p-3"
                   id="job_description"
                   name="job_description"
-                  rows="5"
+                  rows="6"
                   value={formData.job_description}
                   onChange={handleChange}
-                  placeholder="Describe key responsibilities, required technical skills, and selection process..."
+                  placeholder="Describe key responsibilities, required technical skills, and the selection process..."
                   required
                 ></textarea>
               </div>
 
               <button
                 type="submit"
-                className="btn btn-primary w-100 py-2 fw-bold"
-                style={{ borderRadius: '8px' }}
+                className="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm fs-6"
                 disabled={loading}
               >
                 {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Submitting Drive Request...
-                  </>
+                  <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting...</>
                 ) : (
-                  'Submit Drive Request for Admin Approval'
+                  <><i className="bi bi-send-fill me-2"></i>Submit Drive Request</>
                 )}
               </button>
             </form>
           </div>
         </div>
+
       </div>
     </div>
   );
