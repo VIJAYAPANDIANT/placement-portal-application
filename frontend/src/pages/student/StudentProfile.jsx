@@ -168,27 +168,33 @@ const StudentProfile = () => {
 
   if (loading) {
     return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
+      <div className="d-flex flex-column justify-content-center align-items-center py-5 fade-in">
+        <div className="spinner-border text-primary shadow-sm" role="status" style={{ width: '3rem', height: '3rem' }}>
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-3 text-muted">Retrieving student profile...</p>
+        <p className="mt-3 text-muted fw-medium">Retrieving student profile...</p>
       </div>
     );
   }
 
   if (error || !profile) {
     return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-0">{error || 'Profile not found'}</p>
+      <div className="card border-danger shadow-sm p-4 text-center fade-in">
+        <p className="text-danger fw-semibold mb-0"><i className="bi bi-exclamation-octagon-fill me-2"></i>{error || 'Profile not found'}</p>
       </div>
     );
   }
 
   const completeness = profile.profile_completeness || 0;
-  let progressBarColor = '#dc2626'; // red
-  if (completeness >= 75) progressBarColor = '#16a34a'; // green
-  else if (completeness >= 50) progressBarColor = '#d97706'; // yellow
+  let progressBarColor = 'var(--bs-danger)';
+  let progressBgColor = 'rgba(220, 53, 69, 0.2)';
+  if (completeness >= 75) {
+    progressBarColor = 'var(--bs-success)';
+    progressBgColor = 'rgba(25, 135, 84, 0.2)';
+  } else if (completeness >= 50) {
+    progressBarColor = 'var(--bs-warning)';
+    progressBgColor = 'rgba(255, 193, 7, 0.2)';
+  }
 
   const getMissingHint = () => {
     if (!profile.resume_url) return 'Upload your resume to improve your profile';
@@ -201,143 +207,190 @@ const StudentProfile = () => {
   const todayStr = new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
 
   return (
-    <div>
+    <div className="fade-in">
+      <div className="mb-4">
+        <h4 className="fw-bold text-dark mb-1">Student Profile</h4>
+        <p className="text-secondary mb-0" style={{ fontSize: '0.95rem' }}>Manage your personal details, academic records, and resume for recruiters.</p>
+      </div>
+
       {alert && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show mb-4`} role="alert">
+        <div className={`alert alert-${alert.type} alert-dismissible fade show mb-4 shadow-sm`} role="alert">
+          <i className={`bi ${alert.type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
           {alert.message}
           <button type="button" className="btn-close" onClick={() => setAlert(null)} aria-label="Close"></button>
         </div>
       )}
 
       {/* Section 1: Profile Completeness Bar */}
-      <div className="panel-card p-3 mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-2" style={{ fontSize: '12px' }}>
-          <span className="fw-bold text-muted">PROFILE COMPLETENESS</span>
-          <span className="fw-bold" style={{ color: progressBarColor, fontSize: '13px' }}>{completeness}% Complete</span>
-        </div>
-        <div className="progress mb-2" style={{ height: '8px', background: 'var(--table-hover)', borderRadius: '4px' }}>
-          <div 
-            className="progress-bar" 
-            role="progressbar" 
-            style={{ width: `${completeness}%`, backgroundColor: progressBarColor, borderRadius: '4px', transition: 'width 0.4s' }}
-          ></div>
-        </div>
-        <div className="text-muted small" style={{ fontSize: '11px' }}>
-          💡 <strong>Tip:</strong> {getMissingHint()}
+      <div className="card border-0 shadow-sm mb-4">
+        <div className="card-body p-4">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h6 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+              <i className="bi bi-shield-check text-primary"></i>Profile Completeness
+            </h6>
+            <span className="badge px-3 py-2 fs-6" style={{ backgroundColor: progressBgColor, color: progressBarColor }}>
+              {completeness}% Complete
+            </span>
+          </div>
+          <div className="progress mb-3" style={{ height: '10px', borderRadius: '5px' }}>
+            <div 
+              className="progress-bar progress-bar-striped progress-bar-animated" 
+              role="progressbar" 
+              style={{ width: `${completeness}%`, backgroundColor: progressBarColor, borderRadius: '5px', transition: 'width 0.4s' }}
+            ></div>
+          </div>
+          <div className="text-muted small fw-medium bg-light p-2 px-3 rounded d-inline-block">
+            <i className="bi bi-lightbulb-fill text-warning me-2"></i><strong>Tip:</strong> {getMissingHint()}
+          </div>
         </div>
       </div>
 
-      <div className="row g-3">
-        {/* LEFT COLUMN (col-md-8) */}
-        <div className="col-md-8">
+      <div className="row g-4">
+        {/* LEFT COLUMN (col-lg-8) */}
+        <div className="col-lg-8">
+          
           {/* Section 2: Academic Information Card */}
-          <div className="panel-card">
-            <div className="panel-header">
-              <h5 className="panel-title">Academic Information</h5>
-              <span className="status-pill pill-info">Verified Registry</span>
+          <div className="card border-0 shadow-sm mb-4">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+              <h5 className="fw-bold text-dark mb-0">Academic Information</h5>
+              <span className="badge badge-soft-primary"><i className="bi bi-patch-check-fill me-1"></i>Verified</span>
             </div>
-            <div className="panel-body">
-              <div className="row g-3" style={{ fontSize: '13px' }}>
-                <div className="col-6">
-                  <span className="text-muted d-block" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px' }}>FULL NAME</span>
-                  <strong style={{ color: 'var(--bs-body-color)' }}>{profile.name}</strong>
+            <div className="card-body p-4">
+              <div className="row g-4">
+                <div className="col-sm-6">
+                  <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Full Name</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }}>
+                      <i className="bi bi-person-fill"></i>
+                    </div>
+                    <strong className="text-dark fs-6">{profile.name}</strong>
+                  </div>
                 </div>
-                <div className="col-6">
-                  <span className="text-muted d-block" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px' }}>ROLL NUMBER</span>
-                  <strong style={{ color: 'var(--bs-body-color)' }}>{profile.roll_number}</strong>
+                <div className="col-sm-6">
+                  <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Roll Number</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }}>
+                      <i className="bi bi-hash"></i>
+                    </div>
+                    <strong className="text-dark fs-6">{profile.roll_number}</strong>
+                  </div>
                 </div>
-                <div className="col-6">
-                  <span className="text-muted d-block" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px' }}>COLLEGE EMAIL</span>
-                  <span style={{ color: 'var(--bs-body-color)' }}>{profile.email}</span>
+                <div className="col-sm-6">
+                  <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>College Email</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-info bg-opacity-10 text-info rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }}>
+                      <i className="bi bi-envelope-fill"></i>
+                    </div>
+                    <span className="text-dark fw-medium">{profile.email}</span>
+                  </div>
                 </div>
-                <div className="col-6">
-                  <span className="text-muted d-block" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px' }}>ACADEMIC BRANCH</span>
-                  <span className="status-pill pill-purple">{profile.branch}</span>
+                <div className="col-sm-6">
+                  <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Academic Branch</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-purple bg-opacity-10 text-purple rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }}>
+                      <i className="bi bi-journal-bookmark-fill"></i>
+                    </div>
+                    <span className="badge bg-purple text-white bg-opacity-75">{profile.branch}</span>
+                  </div>
                 </div>
-                <div className="col-6">
-                  <span className="text-muted d-block" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px' }}>CUMULATIVE CGPA</span>
-                  <strong className="text-success" style={{ fontSize: '15px' }}>{profile.cgpa} / 10.0</strong>
+                <div className="col-sm-6">
+                  <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Cumulative CGPA</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }}>
+                      <i className="bi bi-award-fill"></i>
+                    </div>
+                    <strong className="text-success fs-5">{profile.cgpa} <span className="text-muted fs-6">/ 10.0</span></strong>
+                  </div>
                 </div>
-                <div className="col-6">
-                  <span className="text-muted d-block" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.5px' }}>GRADUATION YEAR</span>
-                  <strong style={{ color: 'var(--bs-body-color)' }}>{profile.graduation_year}</strong>
+                <div className="col-sm-6">
+                  <span className="text-muted text-uppercase fw-semibold d-block mb-1" style={{ fontSize: '0.7rem', letterSpacing: '0.5px' }}>Graduation Year</span>
+                  <div className="d-flex align-items-center gap-2">
+                    <div className="bg-warning bg-opacity-10 text-warning rounded-circle d-flex justify-content-center align-items-center" style={{ width: '30px', height: '30px' }}>
+                      <i className="bi bi-mortarboard-fill"></i>
+                    </div>
+                    <strong className="text-dark fs-6">{profile.graduation_year}</strong>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Section 3: About Me / Bio Card */}
-          <div className="panel-card">
-            <div className="panel-header">
-              <h5 className="panel-title">About Me</h5>
+          <div className="card border-0 shadow-sm mb-4">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+              <h5 className="fw-bold text-dark mb-0">About Me</h5>
               {!isEditingBio && (
                 <button 
-                  className="btn btn-sm btn-outline-secondary py-1 px-2"
-                  style={{ borderRadius: '6px', fontSize: '11px' }}
+                  className="btn btn-sm btn-outline-secondary rounded-pill fw-semibold px-3 shadow-sm"
                   onClick={() => setIsEditingBio(true)}
                 >
-                  ✏️ Edit Bio
+                  <i className="bi bi-pencil-square me-2"></i>Edit Bio
                 </button>
               )}
             </div>
-            <div className="panel-body">
+            <div className="card-body p-4">
               {isEditingBio ? (
                 <div>
                   <textarea
-                    className="form-control mb-2"
+                    className="form-control mb-3"
                     rows="4"
                     maxLength={300}
                     value={bioInput}
                     onChange={(e) => setBioInput(e.target.value)}
                     placeholder="Write a short personal statement or summary of career interests..."
+                    autoFocus
                   ></textarea>
                   <div className="d-flex justify-content-between align-items-center">
-                    <span className="text-muted" style={{ fontSize: '11px' }}>{bioInput.length} / 300 characters</span>
+                    <span className="text-muted small fw-medium">{bioInput.length} / 300 chars</span>
                     <div className="d-flex gap-2">
                       <button 
-                        className="btn btn-sm btn-outline-secondary py-1 px-3"
-                        style={{ borderRadius: '6px', fontSize: '12px' }}
+                        className="btn btn-outline-secondary rounded-pill px-4 fw-semibold shadow-sm"
                         onClick={() => { setIsEditingBio(false); setBioInput(profile.bio || ''); }}
                       >
                         Cancel
                       </button>
                       <button 
-                        className="btn btn-sm btn-primary py-1 px-3 fw-bold"
-                        style={{ borderRadius: '6px', fontSize: '12px' }}
+                        className="btn btn-primary rounded-pill px-4 fw-bold shadow-sm"
                         onClick={handleSaveBio}
                         disabled={bioSaving}
                       >
-                        {bioSaving ? 'Saving...' : 'Save Bio'}
+                        {bioSaving ? <span className="spinner-border spinner-border-sm me-2"></span> : <i className="bi bi-floppy-fill me-2"></i>}
+                        Save
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
-                <p className="mb-0" style={{ fontSize: '13px', color: profile.bio ? 'var(--bs-body-color)' : 'var(--muted)', whiteSpace: 'pre-line' }}>
-                  {profile.bio || 'Add a short bio to introduce yourself to potential recruiters...'}
-                </p>
+                <div className="bg-light p-4 rounded border border-light">
+                  <p className="mb-0 text-secondary" style={{ whiteSpace: 'pre-line', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                    {profile.bio || (
+                      <span className="text-muted fst-italic">
+                        <i className="bi bi-info-circle me-2"></i>Add a short bio to introduce yourself to potential recruiters...
+                      </span>
+                    )}
+                  </p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Section 4: Skills Card */}
-          <div className="panel-card">
-            <div className="panel-header">
-              <h5 className="panel-title">Technical Skills</h5>
+          <div className="card border-0 shadow-sm mb-4 mb-lg-0">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+              <h5 className="fw-bold text-dark mb-0">Technical Skills</h5>
               {!showAddSkill && skillsList.length < 15 && (
                 <button 
-                  className="btn btn-sm btn-outline-primary py-1 px-2"
-                  style={{ borderRadius: '6px', fontSize: '11px' }}
+                  className="btn btn-sm btn-outline-primary rounded-pill fw-semibold px-3 shadow-sm"
                   onClick={() => setShowAddSkill(true)}
                 >
-                  + Add Skill
+                  <i className="bi bi-plus-lg me-2"></i>Add Skill
                 </button>
               )}
             </div>
-            <div className="panel-body">
+            <div className="card-body p-4">
               {skillsList.length >= 15 && (
-                <div className="alert alert-warning py-1 px-2 mb-3 small" style={{ fontSize: '11px' }}>
-                  ⚠️ Maximum 15 skills allowed
+                <div className="alert alert-warning py-2 px-3 mb-4 small fw-medium shadow-sm d-flex align-items-center">
+                  <i className="bi bi-exclamation-triangle-fill me-2"></i>Maximum 15 skills allowed
                 </div>
               )}
 
@@ -345,21 +398,14 @@ const StudentProfile = () => {
                 {skillsList.map((skill, idx) => (
                   <span 
                     key={idx} 
-                    className="badge d-inline-flex align-items-center gap-1 py-2 px-3"
-                    style={{ 
-                      background: 'var(--sidebar-active-bg)', 
-                      color: 'var(--sidebar-active-color)',
-                      border: '1px solid var(--sidebar-active-border)',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 600
-                    }}
+                    className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 d-inline-flex align-items-center gap-1 py-2 px-3"
+                    style={{ borderRadius: '20px', fontSize: '0.85rem' }}
                   >
                     {skill}
                     <button 
                       type="button" 
-                      className="btn-close ms-1"
-                      style={{ fontSize: '9px', filter: 'none' }}
+                      className="btn-close ms-1 shadow-none"
+                      style={{ fontSize: '0.5rem', filter: 'none', opacity: 0.8 }}
                       onClick={() => handleRemoveSkill(skill)}
                       aria-label="Remove"
                     ></button>
@@ -367,26 +413,29 @@ const StudentProfile = () => {
                 ))}
 
                 {skillsList.length === 0 && !showAddSkill && (
-                  <span className="text-muted small">No skills added yet. Click "+ Add Skill" above to list your tech stack.</span>
+                  <div className="text-center w-100 py-3">
+                    <i className="bi bi-tools text-muted fs-3 mb-2 d-block"></i>
+                    <span className="text-muted fw-medium">No skills added yet. Click "Add Skill" above to list your tech stack.</span>
+                  </div>
                 )}
               </div>
 
               {showAddSkill && (
-                <div className="d-flex gap-2 mt-3" style={{ maxWidth: '320px' }}>
+                <div className="d-flex align-items-center gap-2 mt-4 bg-light p-3 rounded border">
                   <input
                     type="text"
-                    className="form-control form-control-sm"
+                    className="form-control"
                     placeholder="e.g. Python, React, SQL"
                     value={newSkillInput}
                     onChange={(e) => setNewSkillInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
                     autoFocus
                   />
-                  <button className="btn btn-sm btn-primary fw-bold px-3" onClick={handleAddSkill} disabled={skillsSaving}>
+                  <button className="btn btn-primary fw-bold px-4 rounded shadow-sm" onClick={handleAddSkill} disabled={skillsSaving}>
                     Add
                   </button>
-                  <button className="btn btn-sm btn-outline-secondary" onClick={() => setShowAddSkill(false)}>
-                    ✕
+                  <button className="btn btn-outline-secondary rounded shadow-sm" onClick={() => setShowAddSkill(false)}>
+                    <i className="bi bi-x-lg"></i>
                   </button>
                 </div>
               )}
@@ -394,15 +443,16 @@ const StudentProfile = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN (col-md-4) */}
-        <div className="col-md-4">
+        {/* RIGHT COLUMN (col-lg-4) */}
+        <div className="col-lg-4">
+          
           {/* Section 5: Resume Card */}
-          <div className="panel-card">
-            <div className="panel-header">
-              <h5 className="panel-title">Resume</h5>
-              <span className="status-pill pill-info">PDF</span>
+          <div className="card border-0 shadow-sm mb-4">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+              <h5 className="fw-bold text-dark mb-0">Resume</h5>
+              <span className="badge badge-soft-danger"><i className="bi bi-file-earmark-pdf-fill me-1"></i>PDF</span>
             </div>
-            <div className="panel-body">
+            <div className="card-body p-4">
               <input 
                 type="file" 
                 ref={fileInputRef}
@@ -412,43 +462,51 @@ const StudentProfile = () => {
               />
 
               {profile.resume_url ? (
-                <div className="p-3 border rounded text-center" style={{ background: 'var(--table-hover)', borderColor: 'var(--card-border)' }}>
-                  <div style={{ fontSize: '2.5rem' }}>📄</div>
-                  <h6 className="fw-bold mt-2 mb-1 text-truncate" style={{ fontSize: '13px' }}>{profile.name.replace(/\s+/g, '_')}_Resume.pdf</h6>
-                  <small className="text-muted d-block mb-3" style={{ fontSize: '11px' }}>Uploaded: {todayStr}</small>
+                <div className="p-4 border rounded text-center bg-light">
+                  <div className="bg-white rounded-circle shadow-sm d-inline-flex justify-content-center align-items-center mb-3" style={{ width: '60px', height: '60px' }}>
+                    <i className="bi bi-file-earmark-pdf-fill text-danger fs-2"></i>
+                  </div>
+                  <h6 className="fw-bold text-dark mb-1 text-truncate px-2" title={`${profile.name.replace(/\s+/g, '_')}_Resume.pdf`}>
+                    {profile.name.replace(/\s+/g, '_')}_Resume.pdf
+                  </h6>
+                  <p className="text-muted small fw-medium mb-4">Uploaded: {todayStr}</p>
                   
-                  <div className="d-flex gap-2 justify-content-center">
+                  <div className="d-flex flex-column gap-2">
                     <button 
-                      className="btn btn-sm btn-outline-primary fw-bold px-3"
-                      style={{ borderRadius: '6px', fontSize: '12px' }}
+                      className="btn btn-primary fw-bold shadow-sm rounded-pill"
                       onClick={() => {
                         const baseUrl = api.defaults.baseURL.replace(/\/api$/, '');
                         window.open(`${baseUrl}/${profile.resume_url}`, '_blank');
                       }}
                     >
-                      👁️ Preview
+                      <i className="bi bi-eye-fill me-2"></i>Preview Resume
                     </button>
                     <button 
-                      className="btn btn-sm btn-secondary fw-bold px-3"
-                      style={{ borderRadius: '6px', fontSize: '12px' }}
+                      className="btn btn-outline-secondary fw-semibold rounded-pill"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingResume}
                     >
-                      {uploadingResume ? 'Uploading...' : '🔄 Replace'}
+                      {uploadingResume ? (
+                        <><span className="spinner-border spinner-border-sm me-2"></span>Uploading...</>
+                      ) : (
+                        <><i className="bi bi-arrow-repeat me-2"></i>Replace PDF</>
+                      )}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div 
-                  className="p-4 border border-dashed rounded text-center cursor-pointer"
-                  style={{ borderStyle: 'dashed', borderWidth: '2px', borderColor: 'var(--input-border)', background: 'var(--table-hover)', cursor: 'pointer' }}
+                  className="p-5 rounded text-center cursor-pointer card-hover"
+                  style={{ border: '2px dashed var(--bs-primary)', backgroundColor: 'var(--bs-primary-bg-subtle)' }}
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <div style={{ fontSize: '2.5rem' }}>📤</div>
-                  <h6 className="fw-bold mt-2 mb-1" style={{ fontSize: '13px' }}>Upload your resume</h6>
-                  <small className="text-muted d-block mb-3" style={{ fontSize: '11px' }}>PDF files only, max 5MB</small>
-                  <button className="btn btn-sm btn-primary fw-bold px-3" style={{ borderRadius: '6px', fontSize: '12px' }} disabled={uploadingResume}>
-                    {uploadingResume ? 'Uploading...' : 'Select PDF File'}
+                  <i className="bi bi-cloud-arrow-up-fill text-primary mb-3 d-block" style={{ fontSize: '3rem' }}></i>
+                  <h6 className="fw-bold text-dark mb-2">Upload your resume</h6>
+                  <p className="text-secondary small fw-medium mb-4">PDF files only, max 5MB</p>
+                  <button className="btn btn-primary fw-bold px-4 rounded-pill shadow-sm" disabled={uploadingResume}>
+                    {uploadingResume ? (
+                      <><span className="spinner-border spinner-border-sm me-2"></span>Uploading...</>
+                    ) : 'Select PDF'}
                   </button>
                 </div>
               )}
@@ -456,54 +514,76 @@ const StudentProfile = () => {
           </div>
 
           {/* Section 6: Links Card */}
-          <div className="panel-card">
-            <div className="panel-header">
-              <h5 className="panel-title">Professional Links</h5>
+          <div className="card border-0 shadow-sm">
+            <div className="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+              <h5 className="fw-bold text-dark mb-0">Professional Links</h5>
+            </div>
+            <div className="card-body p-4">
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark small d-flex align-items-center gap-2">
+                  <i className="bi bi-linkedin text-primary"></i> LinkedIn Profile
+                </label>
+                <div className="input-group shadow-sm">
+                  <span className="input-group-text bg-light border-end-0"><i className="bi bi-link-45deg text-muted"></i></span>
+                  <input 
+                    type="text"
+                    className={`form-control border-start-0 ps-0 ${linkErrors.linkedin_url ? 'is-invalid' : ''}`}
+                    placeholder="https://linkedin.com/in/username"
+                    value={links.linkedin_url}
+                    onChange={(e) => setLinks(prev => ({ ...prev, linkedin_url: e.target.value }))}
+                  />
+                  {linkErrors.linkedin_url && <div className="invalid-feedback">{linkErrors.linkedin_url}</div>}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark small d-flex align-items-center gap-2">
+                  <i className="bi bi-github text-dark"></i> GitHub Profile
+                </label>
+                <div className="input-group shadow-sm">
+                  <span className="input-group-text bg-light border-end-0"><i className="bi bi-link-45deg text-muted"></i></span>
+                  <input 
+                    type="text"
+                    className={`form-control border-start-0 ps-0 ${linkErrors.github_url ? 'is-invalid' : ''}`}
+                    placeholder="https://github.com/username"
+                    value={links.github_url}
+                    onChange={(e) => setLinks(prev => ({ ...prev, github_url: e.target.value }))}
+                  />
+                  {linkErrors.github_url && <div className="invalid-feedback">{linkErrors.github_url}</div>}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label fw-bold text-dark small d-flex align-items-center gap-2">
+                  <i className="bi bi-globe text-info"></i> Portfolio Website
+                </label>
+                <div className="input-group shadow-sm">
+                  <span className="input-group-text bg-light border-end-0"><i className="bi bi-link-45deg text-muted"></i></span>
+                  <input 
+                    type="text"
+                    className={`form-control border-start-0 ps-0 ${linkErrors.portfolio_url ? 'is-invalid' : ''}`}
+                    placeholder="https://yoursite.com"
+                    value={links.portfolio_url}
+                    onChange={(e) => setLinks(prev => ({ ...prev, portfolio_url: e.target.value }))}
+                  />
+                  {linkErrors.portfolio_url && <div className="invalid-feedback">{linkErrors.portfolio_url}</div>}
+                </div>
+              </div>
+
               <button 
-                className={`btn btn-sm ${linksSavedSuccess ? 'btn-success' : 'btn-primary'} fw-bold px-3`}
-                style={{ borderRadius: '6px', fontSize: '12px' }}
+                className={`btn w-100 fw-bold shadow-sm rounded-pill ${linksSavedSuccess ? 'btn-success' : 'btn-primary'}`}
                 onClick={handleSaveLinks}
                 disabled={linksSaving}
               >
-                {linksSaving ? 'Saving...' : linksSavedSuccess ? 'Saved ✓' : 'Save Links'}
+                {linksSaving ? (
+                  <><span className="spinner-border spinner-border-sm me-2"></span>Saving...</>
+                ) : linksSavedSuccess ? (
+                  <><i className="bi bi-check-circle-fill me-2"></i>Saved Successfully</>
+                ) : (
+                  <><i className="bi bi-floppy-fill me-2"></i>Save Links</>
+                )}
               </button>
-            </div>
-            <div className="panel-body">
-              <div className="mb-3">
-                <label className="form-label fw-bold" style={{ fontSize: '11px' }}>🔗 LINKEDIN PROFILE</label>
-                <input 
-                  type="text"
-                  className={`form-control ${linkErrors.linkedin_url ? 'is-invalid' : ''}`}
-                  placeholder="https://linkedin.com/in/username"
-                  value={links.linkedin_url}
-                  onChange={(e) => setLinks(prev => ({ ...prev, linkedin_url: e.target.value }))}
-                />
-                {linkErrors.linkedin_url && <div className="invalid-feedback">{linkErrors.linkedin_url}</div>}
-              </div>
 
-              <div className="mb-3">
-                <label className="form-label fw-bold" style={{ fontSize: '11px' }}>🐙 GITHUB PROFILE</label>
-                <input 
-                  type="text"
-                  className={`form-control ${linkErrors.github_url ? 'is-invalid' : ''}`}
-                  placeholder="https://github.com/username"
-                  value={links.github_url}
-                  onChange={(e) => setLinks(prev => ({ ...prev, github_url: e.target.value }))}
-                />
-                {linkErrors.github_url && <div className="invalid-feedback">{linkErrors.github_url}</div>}
-              </div>
-
-              <div className="mb-2">
-                <label className="form-label fw-bold" style={{ fontSize: '11px' }}>🌐 PORTFOLIO WEBSITE</label>
-                <input 
-                  type="text"
-                  className={`form-control ${linkErrors.portfolio_url ? 'is-invalid' : ''}`}
-                  placeholder="https://yoursite.com"
-                  value={links.portfolio_url}
-                  onChange={(e) => setLinks(prev => ({ ...prev, portfolio_url: e.target.value }))}
-                />
-                {linkErrors.portfolio_url && <div className="invalid-feedback">{linkErrors.portfolio_url}</div>}
-              </div>
             </div>
           </div>
         </div>
