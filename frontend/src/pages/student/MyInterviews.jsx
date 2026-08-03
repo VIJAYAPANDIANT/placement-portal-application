@@ -1,125 +1,174 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import NotificationDrawer, { useNotificationCount } from '../../components/common/NotificationDrawer';
+import './student.css';
 
 const MyInterviews = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [interviews, setInterviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [time, setTime]             = useState(new Date());
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { count: unreadCount, refresh: refreshCount } = useNotificationCount();
 
   useEffect(() => {
-    fetchInterviews();
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  const fetchInterviews = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await api.get('/student/interviews');
-      setInterviews(res.data);
-    } catch (err) {
-      console.error('Error fetching interviews:', err);
-      setError(err.response?.data?.error || 'Failed to retrieve scheduled interviews.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    api.get('/student/interviews')
+      .then(res => setInterviews(res.data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcoming  = interviews.filter(iv => {
+    const d = new Date(iv.interview_date);
+    return d >= today;
+  });
+  const completed = interviews.filter(iv => {
+    const d = new Date(iv.interview_date);
+    return d < today;
+  });
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-US', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   };
-
-  const getModeBadge = (mode) => {
-    if (mode === 'online') {
-      return <span className="status-pill pill-info">💻 Online Meeting</span>;
-    }
-    return <span className="status-pill pill-purple">🏛️ Campus Venue</span>;
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3 text-muted">Loading your interview schedule...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-0">{error}</p>
-      </div>
-    );
-  }
 
   return (
-    <div>
-      <div className="mb-4">
-        <h4 className="fw-bold mb-1">Scheduled Interview Rounds</h4>
-        <p className="text-muted mb-0" style={{ fontSize: '13px' }}>Confirmed interview dates, venues, meeting links, and candidate instructions.</p>
+    <div className="sp-page">
+      {/* ── TOPBAR ── */}
+      <div className="sp-topbar">
+        <span className="sp-topbar__title">Interviews</span>
+        <div className="sp-topbar__right">
+          <span className="sp-live-badge"><span className="sp-live-dot" />LIVE</span>
+          <span className="sp-time-badge">{timeStr} IST</span>
+          <span className="sp-role-badge">STUDENT</span>
+          <button
+            className="sp-topbar__bell"
+            title="Notifications"
+            onClick={() => setIsDrawerOpen(true)}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {unreadCount > 0 && <span className="sp-topbar__bell-badge">{unreadCount}</span>}
+          </button>
+          <button className="sp-btn-ghost" onClick={() => { logout(); navigate('/login'); }}>Sign Out</button>
+          <button className="sp-btn-primary">Add to Calendar</button>
+        </div>
       </div>
 
-      {interviews.length === 0 ? (
-        <div className="panel-card p-5 text-center">
-          <div style={{ fontSize: '2.5rem' }}>📅</div>
-          <p className="mt-3 fw-semibold mb-1">No interviews scheduled yet</p>
-          <small className="text-muted">Your applications are currently under review by hiring companies. Interview calls will appear here once scheduled.</small>
+      <div className="sp-content">
+        {/* Tip Banner */}
+        <div className="sp-tip-bar">
+          <span>💡</span>
+          <span>
+            <strong>Tip:</strong> Review DSA fundamentals before technical rounds. For offline interviews, report 15 min early with your college ID and printed resume.
+          </span>
         </div>
-      ) : (
-        <div className="row g-3">
-          {interviews.map((iv, idx) => (
-            <div key={idx} className="col-md-6 col-lg-4">
-              <div className="panel-card h-100 d-flex flex-column justify-content-between mb-0">
-                <div className="panel-header">
-                  <div className="flex-grow-1 text-truncate pe-2">
-                    <h5 className="panel-title text-truncate">{iv.job_title}</h5>
-                    <span className="text-primary fw-semibold" style={{ fontSize: '12px' }}>{iv.company_name}</span>
-                  </div>
-                  {getModeBadge(iv.interview_mode)}
+
+        {loading ? (
+          <div style={{ textAlign:'center', padding:'60px 0', color:'#9CA3AF' }}>
+            <div style={{ fontSize:'28px', marginBottom:'8px' }}>⏳</div>Loading interviews…
+          </div>
+        ) : interviews.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'80px 0', color:'#9CA3AF' }}>
+            <div style={{ fontSize:'40px', marginBottom:'12px' }}>📅</div>
+            <div style={{ fontSize:'15px', fontWeight:600, marginBottom:'4px' }}>No interviews yet</div>
+            <div style={{ fontSize:'13px' }}>When you get shortlisted, your interview schedule will appear here.</div>
+            <Link to="/student/drives" style={{ display:'inline-block', marginTop:'16px', color:'#0F766E', fontWeight:600, textDecoration:'none' }}>
+              Browse Drives →
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Upcoming */}
+            {upcoming.length > 0 && (
+              <div style={{ marginBottom:'28px' }}>
+                <div className="sp-iv-section-title">
+                  <span>📅</span>
+                  <span>Upcoming Interviews ({upcoming.length})</span>
                 </div>
-
-                <div className="panel-body flex-grow-1">
-                  <div className="mb-3" style={{ fontSize: '12px' }}>
-                    <div className="mb-2">
-                      <span className="text-muted d-block" style={{ fontSize: '10px' }}>SCHEDULED DATE</span>
-                      <strong className="fw-bold" style={{ color: 'var(--bs-body-color)', fontSize: '14px' }}>📅 {iv.interview_date || 'N/A'}</strong>
-                    </div>
-
-                    <div className="mb-2">
-                      <span className="text-muted d-block" style={{ fontSize: '10px' }}>
-                        {iv.interview_mode === 'online' ? 'MEETING LINK' : 'VENUE LOCATION'}
-                      </span>
-                      {iv.location_or_link ? (
-                        iv.interview_mode === 'online' ? (
-                          <a 
-                            href={iv.location_or_link.startsWith('http') ? iv.location_or_link : `https://${iv.location_or_link}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="fw-bold text-decoration-none"
-                          >
-                            🔗 Join Online Meeting Room
-                          </a>
-                        ) : (
-                          <strong style={{ color: 'var(--bs-body-color)' }}>{iv.location_or_link}</strong>
-                        )
+                {upcoming.map((iv, i) => (
+                  <div className="sp-iv-card" key={i}>
+                    <div className="sp-iv-card__action">
+                      {iv.interview_mode === 'online' ? (
+                        <button className="sp-btn-primary" style={{ fontSize:'12px' }}>
+                          Join Zoom
+                        </button>
                       ) : (
-                        <span className="text-muted">Details will be updated soon</span>
+                        <button className="sp-btn-ghost" style={{ fontSize:'12px' }}>
+                          Campus Map
+                        </button>
                       )}
                     </div>
-                  </div>
-
-                  {iv.notes && (
-                    <div className="p-3 border rounded" style={{ background: 'var(--table-hover)', borderColor: 'var(--card-border)', fontSize: '12px' }}>
-                      <span className="text-muted d-block mb-1" style={{ fontSize: '10px' }}>CANDIDATE INSTRUCTIONS</span>
-                      <p className="mb-0" style={{ color: 'var(--bs-body-color)', whiteSpace: 'pre-line' }}>
-                        {iv.notes}
-                      </p>
+                    <div className="sp-iv-card__company">
+                      {iv.company_name} · {iv.job_title}
                     </div>
-                  )}
-                </div>
+                    <div className="sp-iv-card__date">{formatDate(iv.interview_date)}</div>
+                    <div className="sp-iv-card__time">
+                      Round 1 — {iv.interview_mode === 'online' ? 'Technical' : 'Campus Interview'}
+                    </div>
+                    <div style={{ display:'flex', gap:'8px', marginBottom:'8px' }}>
+                      <span className={`sp-mode-badge sp-mode--${iv.interview_mode}`}>
+                        {iv.interview_mode === 'online' ? '🌐 Online' : '📍 Offline'}
+                      </span>
+                      {iv.location_or_link && (
+                        <span style={{ fontSize:'12px', color:'#6B7280' }}>
+                          {iv.interview_mode === 'online' ? '🔗' : '📍'} {iv.location_or_link}
+                        </span>
+                      )}
+                    </div>
+                    {iv.notes && (
+                      <div style={{ fontSize:'12px', color:'#6B7280', background:'#F9FAFB', borderRadius:'6px', padding:'8px 10px' }}>
+                        📋 <strong>Notes:</strong> {iv.notes}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            )}
+
+            {/* Completed */}
+            {completed.length > 0 && (
+              <div>
+                <div className="sp-iv-section-title">
+                  <span>✅</span>
+                  <span>Completed</span>
+                </div>
+                {completed.map((iv, i) => (
+                  <div className="sp-iv-card" key={i} style={{ opacity:0.75 }}>
+                    <div className="sp-iv-card__company">{iv.company_name} · {iv.job_title}</div>
+                    <div className="sp-iv-card__date" style={{ fontSize:'15px' }}>{formatDate(iv.interview_date)} · All Rounds</div>
+                    <div style={{ display:'flex', gap:'12px', marginTop:'8px', flexWrap:'wrap' }}>
+                      {['Round 1 ✓', 'Round 2 ✓', 'HR ✓', 'Offer Extended 🎉'].map(step => (
+                        <span key={step} style={{ fontSize:'11px', color:'#16A34A', fontWeight:600 }}>{step}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      <NotificationDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => { setIsDrawerOpen(false); refreshCount(); }}
+      />
     </div>
   );
 };

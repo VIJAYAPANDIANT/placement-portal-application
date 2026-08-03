@@ -1,0 +1,408 @@
+/* ============================================================
+   COMPANY PORTAL — PlaceLink Reference Design
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --cp-bg:        #F4F6FA;
+  --cp-white:     #FFFFFF;
+  --cp-border:    #E5E7EB;
+  --cp-text:      #111827;
+  --cp-muted:     #6B7280;
+  --cp-primary:   #0F766E;
+  --cp-teal:      #14B8A6;
+  --cp-blue:      #2563EB;
+  --cp-green:     #16A34A;
+  --cp-red:       #DC2626;
+  --cp-orange:    #D97706;
+  --cp-sidebar-w: 200px;
+  --cp-topbar-h:  52px;
+  --cp-font:      'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --cp-radius:    8px;
+  --cp-shadow:    0 1px 3px rgba(0,0,0,0.07);
+}
+
+/* ── GLOBAL RESET ────────────────────────────────────────── */
+.cp-page * { box-sizing: border-box; }
+.cp-page {
+  font-family: var(--cp-font);
+  background: var(--cp-bg);
+  min-height: 100vh;
+  color: var(--cp-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── TOPBAR ──────────────────────────────────────────────── */
+.cp-topbar {
+  position: fixed;
+  top: 0;
+  left: var(--cp-sidebar-w);
+  right: 0;
+  height: var(--cp-topbar-h);
+  background: var(--cp-white);
+  border-bottom: 1px solid var(--cp-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 100;
+}
+
+.cp-topbar__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cp-text);
+}
+
+.cp-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cp-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: var(--cp-green);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.cp-live-dot {
+  width: 6px; height: 6px;
+  background: var(--cp-green);
+  border-radius: 50%;
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+.cp-time-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cp-muted);
+}
+
+.cp-role-badge {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.cp-topbar__bell {
+  position: relative;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #F9FAFB;
+  border: 1px solid var(--cp-border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #6B7280;
+  transition: all 0.15s;
+}
+.cp-topbar__bell:hover { background: #F0FDF4; color: var(--cp-primary); }
+.cp-topbar__bell-badge {
+  position: absolute; top: -2px; right: -2px;
+  width: 14px; height: 14px;
+  background: #EF4444;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  font-size: 8px; font-weight: 800; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.cp-btn-ghost {
+  height: 32px; padding: 0 14px;
+  background: var(--cp-white);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+  color: var(--cp-text);
+  cursor: pointer;
+  font-family: var(--cp-font);
+  transition: background 0.15s;
+}
+.cp-btn-ghost:hover { background: #F9FAFB; }
+
+.cp-btn-primary {
+  height: 32px; padding: 0 14px;
+  background: var(--cp-primary);
+  border: none;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--cp-font);
+  transition: background 0.15s;
+}
+.cp-btn-primary:hover { background: #115e59; }
+
+/* ── CONTENT AREA ────────────────────────────────────────── */
+.cp-content {
+  margin-top: var(--cp-topbar-h);
+  padding: 24px;
+  min-height: calc(100vh - var(--cp-topbar-h));
+}
+
+/* ── BREADCRUMB ──────────────────────────────────────────── */
+.cp-breadcrumb {
+  font-size: 12px;
+  color: var(--cp-muted);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cp-breadcrumb a { color: var(--cp-muted); text-decoration: none; }
+.cp-breadcrumb a:hover { color: var(--cp-primary); }
+.cp-breadcrumb__sep { color: #D1D5DB; }
+
+/* ── KPI CARDS ───────────────────────────────────────────── */
+.cp-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.cp-kpi-card {
+  background: var(--cp-white);
+  border: 1px solid var(--cp-border);
+  border-radius: var(--cp-radius);
+  padding: 18px 20px;
+  box-shadow: var(--cp-shadow);
+  animation: fadeUp 0.35s ease both;
+}
+.cp-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.09);
+  transition: all 0.2s;
+}
+
+.cp-kpi-card__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cp-muted);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.cp-kpi-card__value {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--cp-text);
+  line-height: 1;
+  margin-bottom: 6px;
+  letter-spacing: -1px;
+}
+
+.cp-kpi-card__sub {
+  font-size: 12px;
+  color: var(--cp-muted);
+}
+
+.cp-kpi-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+.cp-chip--green  { background: #DCFCE7; color: #15803D; }
+.cp-chip--blue   { background: #DBEAFE; color: #1D4ED8; }
+.cp-chip--yellow { background: #FEF3C7; color: #B45309; }
+.cp-chip--teal   { background: #CCFBF1; color: #0F766E; }
+
+/* ── PANELS ──────────────────────────────────────────────── */
+.cp-panel {
+  background: var(--cp-white);
+  border: 1px solid var(--cp-border);
+  border-radius: var(--cp-radius);
+  box-shadow: var(--cp-shadow);
+  overflow: hidden;
+}
+
+.cp-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--cp-border);
+}
+
+.cp-panel__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cp-text);
+}
+
+.cp-panel__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cp-primary);
+  text-decoration: none;
+}
+.cp-panel__link:hover { opacity: 0.75; }
+
+.cp-panel__body { padding: 16px 18px; }
+.cp-panel__body--p0 { padding: 0; }
+
+/* ── GRID LAYOUT FOR COMPANY DASHBOARD MAIN ──────────────── */
+.cp-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cp-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── FUNNEL BARS ─────────────────────────────────────────── */
+.cp-funnel-item {
+  margin-bottom: 12px;
+}
+.cp-funnel-item:last-child { margin-bottom: 0; }
+
+.cp-funnel-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cp-funnel-label { color: var(--cp-text); }
+.cp-funnel-count { color: var(--cp-muted); }
+
+.cp-funnel-bar {
+  height: 28px;
+  background: #E5E7EB;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cp-funnel-fill {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+/* ── TABLE STYLING ───────────────────────────────────────── */
+.cp-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cp-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cp-muted);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cp-border);
+  text-align: left;
+}
+
+.cp-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #F3F4F6;
+  font-size: 13px;
+}
+.cp-table tr:last-child td { border-bottom: none; }
+
+.cp-table__name {
+  font-weight: 700;
+  color: var(--cp-text);
+  display: block;
+}
+.cp-table__sub {
+  font-size: 11px;
+  color: var(--cp-muted);
+  display: block;
+}
+
+/* ── STATUS CHIPS / BADGES ───────────────────────────────── */
+.cp-status {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  display: inline-block;
+}
+.cp-status--selected    { background: #DCFCE7; color: #15803D; }
+.cp-status--shortlisted { background: #DBEAFE; color: #1D4ED8; }
+.cp-status--applied     { background: #F3F4F6; color: #374151; }
+.cp-status--pending     { background: #FEF3C7; color: #D97706; }
+.cp-status--rejected    { background: #FEE2E2; color: #B91C1C; }
+
+/* ── QUICK ACTIONS ───────────────────────────────────────── */
+.cp-quick-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--cp-radius);
+  border: 1px solid var(--cp-border);
+  background: var(--cp-white);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--cp-text);
+  font-family: var(--cp-font);
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.15s;
+  margin-bottom: 8px;
+  text-decoration: none;
+}
+.cp-quick-btn:hover { background: #F9FAFB; border-color: var(--cp-primary); color: var(--cp-primary); }
+.cp-quick-btn--primary {
+  background: var(--cp-primary) !important;
+  color: #fff !important;
+  border-color: var(--cp-primary) !important;
+}
+.cp-quick-btn--primary:hover { background: #115e59 !important; }
+
+/* ── ANIMATIONS ──────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .cp-kpi-grid    { grid-template-columns: repeat(2, 1fr); }
+  .cp-main-grid   { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .cp-kpi-grid { grid-template-columns: 1fr; }
+  .cp-content  { padding: 14px; }
+}

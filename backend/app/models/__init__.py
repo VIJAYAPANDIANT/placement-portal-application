@@ -7,3 +7,4 @@ from app.models.student import Student
 from app.models.drive import PlacementDrive
 from app.models.application import Application
 from app.models.interview import InterviewSchedule
+from app.models.notification import Notification, create_notification

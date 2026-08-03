@@ -1,1 +1,225 @@
-/* CSS styles for App component */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --saas-bg: #F8FAFC;
+  --saas-card-bg: #FFFFFF;
+  --saas-border: #E5E7EB;
+  --saas-text-main: #111827;
+  --saas-text-secondary: #6B7280;
+  --saas-primary: #0F766E;
+  --saas-primary-hover: #115e59;
+  --saas-primary-light: #ccfbf1;
+  --saas-sidebar-width: 220px;
+  --saas-navbar-height: 64px;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--saas-bg);
+  color: var(--saas-text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Centered Container Max Width 1440px with 24px padding */
+.saas-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Sidebar Specifics */
+.saas-sidebar {
+  width: var(--saas-sidebar-width);
+  min-width: var(--saas-sidebar-width);
+  min-height: 100vh;
+  background-color: #ffffff;
+  border-right: 1px solid var(--saas-border);
+}
+
+.sidebar-heading {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  color: var(--saas-text-secondary) !important;
+  letter-spacing: 0.5px;
+  padding: 0 12px;
+  margin-bottom: 8px;
+}
+
+.sidebar-item {
+  height: 42px;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  border-radius: 10px !important;
+  color: var(--saas-text-secondary) !important;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.sidebar-item:hover {
+  background-color: #f1f5f9;
+  color: var(--saas-text-main) !important;
+}
+
+.sidebar-item.active {
+  background-color: #e6f4f1 !important;
+  color: var(--saas-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Top Navbar Height 64px */
+.saas-navbar {
+  height: var(--saas-navbar-height);
+  background: #ffffff;
+  border-bottom: 1px solid var(--saas-border);
+}
+
+/* Dashboard Typography Rules */
+.dashboard-title {
+  font-size: 34px !important;
+  font-weight: 700 !important;
+  color: var(--saas-text-main);
+  line-height: 1.2;
+}
+
+.dashboard-breadcrumb {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--saas-text-secondary);
+}
+
+.card-title-uppercase {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 1px !important;
+  color: var(--saas-text-secondary);
+}
+
+.kpi-number {
+  font-size: 42px !important;
+  font-weight: 700 !important;
+  color: var(--saas-text-main);
+  line-height: 1;
+}
+
+.card-subtitle-text {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--saas-text-secondary);
+}
+
+/* Cards: White background, 14px border radius, soft shadow, 20-24px padding */
+.saas-card {
+  background: var(--saas-card-bg) !important;
+  border: 1px solid var(--saas-border) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+  padding: 24px !important;
+}
+
+/* Buttons: 14px font, 38px height, 10px border radius */
+.btn-saas {
+  height: 38px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px !important;
+}
+
+.btn-saas-primary {
+  background-color: var(--saas-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.btn-saas-primary:hover {
+  background-color: var(--saas-primary-hover) !important;
+}
+
+.btn-saas-outline {
+  background-color: #ffffff !important;
+  border: 1px solid var(--saas-border) !important;
+  color: var(--saas-text-main) !important;
+}
+
+.btn-saas-outline:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Badges: 11px font */
+.saas-badge {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
+  border-radius: 9999px !important;
+}
+
+/* Table Styling: Row height reduced, 12px uppercase header, 14px text */
+.saas-table {
+  width: 100%;
+}
+
+.saas-table th {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  color: var(--saas-text-secondary);
+  border-bottom: 1px solid var(--saas-border);
+  padding: 10px 12px !important;
+}
+
+.saas-table td {
+  font-size: 14px !important;
+  color: var(--saas-text-main);
+  padding: 10px 12px !important;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* Dot indicator */
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Notification Drawer Overlay */
+.notification-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.3);
+  z-index: 1050;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.notification-drawer {
+  width: 360px;
+  max-width: 100%;
+  height: 100vh;
+  background: #ffffff;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}

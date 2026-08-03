@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import StatusBadge from '../../components/common/StatusBadge';
+import SkeletonLoader from '../../components/common/SkeletonLoader';
+import EmptyState from '../../components/common/EmptyState';
 
 const StudentList = () => {
   const [students, setStudents] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [branchFilter, setBranchFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [alert, setAlert] = useState(null);
@@ -29,126 +34,140 @@ const StudentList = () => {
     try {
       setAlert(null);
       const response = await api.put(`/admin/students/${id}/blacklist`);
-      
       const newStatus = response.data.is_blacklisted;
-      setStudents(prev =>
-        prev.map(s => (s.id === id ? { ...s, is_blacklisted: newStatus } : s))
+      setStudents((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, is_blacklisted: newStatus } : s))
       );
-      
       setAlert({
         type: 'success',
-        message: response.data.message || `Student blacklist status updated successfully.`
+        message: response.data.message || `Student blacklist status updated successfully.`,
       });
       setTimeout(() => setAlert(null), 3000);
     } catch (err) {
-      console.warn(`Database student ID ${id} not found or error. Simulating blacklist toggle for UI demo:`, err);
-      
-      setStudents(prev =>
-        prev.map(s => {
-          if (s.id === id) {
-            const updatedStatus = !s.is_blacklisted;
-            setAlert({
-              type: 'info',
-              message: `Status updated for ${s.name}.`
-            });
-            return { ...s, is_blacklisted: updatedStatus };
-          }
-          return s;
-        })
-      );
-      setTimeout(() => setAlert(null), 3000);
+      console.error('Error blacklisting student:', err);
+      setAlert({ type: 'danger', message: 'Failed to update student blacklist status.' });
     }
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3 text-muted">Fetching registered student directory...</p>
-      </div>
-    );
-  }
+  const filteredStudents = students.filter((s) => {
+    const matchesSearch =
+      (s.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.roll_number || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesBranch = branchFilter === 'All' || s.branch === branchFilter;
+    return matchesSearch && matchesBranch;
+  });
 
-  if (error) {
-    return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-0">{error}</p>
-        <button className="btn btn-outline-danger btn-sm mt-3" onClick={fetchStudents}>
-          Retry
-        </button>
-      </div>
-    );
-  }
+  const uniqueBranches = ['All', ...Array.from(new Set(students.map((s) => s.branch).filter(Boolean)))];
 
   return (
-    <div>
+    <div className="container-fluid p-4">
+      {/* Header */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 className="fw-extrabold mb-1 text-dark">Student Management & Registry</h4>
+          <p className="text-muted fs-7 mb-0">Oversee student academic credentials, blacklist compliance, and profiles.</p>
+        </div>
+        <button className="btn btn-saas-outline d-inline-flex align-items-center gap-2">
+          <i className="bi bi-download"></i> Export Directory CSV
+        </button>
+      </div>
+
       {alert && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show mb-4`} role="alert">
+        <div className={`alert alert-${alert.type} rounded-3 mb-4`} role="alert">
           {alert.message}
-          <button type="button" className="btn-close" onClick={() => setAlert(null)} aria-label="Close"></button>
         </div>
       )}
 
-      <div className="panel-card">
-        <div className="panel-header">
-          <h5 className="panel-title">Registered Student Registry</h5>
-          <span className="status-pill pill-info">
-            🎓 {students.length} Total Students
+      {/* Filter / Search Bar */}
+      <div className="card saas-card border-0 p-3 mb-4">
+        <div className="row g-3">
+          <div className="col-md-4">
+            <label className="form-label fs-8 text-uppercase text-muted fw-bold mb-1">BRANCH FILTER</label>
+            <select
+              value={branchFilter}
+              onChange={(e) => setBranchFilter(e.target.value)}
+              className="form-select saas-input fw-semibold"
+            >
+              {uniqueBranches.map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-md-8">
+            <label className="form-label fs-8 text-uppercase text-muted fw-bold mb-1">SEARCH CANDIDATES</label>
+            <input
+              type="text"
+              placeholder="Search student by name or roll number..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="form-control saas-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Student Registry Table */}
+      <div className="card saas-card border-0 p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h6 className="fw-bold text-dark mb-0">Student Registry</h6>
+          <span className="badge bg-light text-dark border">
+            {filteredStudents.length} Students
           </span>
         </div>
 
-        {students.length === 0 ? (
-          <div className="text-center py-5">
-            <div style={{ fontSize: '2.5rem' }}>🎓</div>
-            <p className="mt-3 fw-semibold mb-1">No registered students found</p>
-            <small className="text-muted">Once students register for the portal, they will appear here.</small>
-          </div>
+        {loading ? (
+          <SkeletonLoader type="table" count={5} />
+        ) : error ? (
+          <div className="alert alert-danger mb-0">{error}</div>
+        ) : filteredStudents.length === 0 ? (
+          <EmptyState
+            title="No Students Found"
+            message="No registered students match your search filter."
+            icon="bi-person-search"
+          />
         ) : (
           <div className="table-responsive">
-            <table className="enhanced-table">
-              <thead>
+            <table className="table align-middle border-top">
+              <thead className="table-light fs-7 text-uppercase text-muted">
                 <tr>
-                  <th>#</th>
                   <th>Student Name</th>
                   <th>Roll Number</th>
                   <th>Branch</th>
                   <th>CGPA</th>
                   <th>Status</th>
-                  <th className="text-end">Actions</th>
+                  <th className="text-end">Blacklist Control</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((student, idx) => (
-                  <tr key={student.id}>
-                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
-                    <td className="fw-bold">{student.name}</td>
-                    <td>{student.roll_number}</td>
+                {filteredStudents.map((s) => (
+                  <tr key={s.id}>
                     <td>
-                      <span className="status-pill pill-purple">
-                        {student.branch}
-                      </span>
+                      <span className="fw-bold text-dark d-block">{s.name}</span>
+                      <small className="text-muted fs-8">{s.email}</small>
                     </td>
-                    <td className="fw-bold">{student.cgpa}</td>
+                    <td>{s.roll_number}</td>
                     <td>
-                      {student.is_blacklisted ? (
-                        <span className="status-pill pill-danger">
-                          ● Blacklisted
-                        </span>
+                      <span className="badge bg-primary-subtle text-primary fw-semibold">{s.branch}</span>
+                    </td>
+                    <td><span className="fw-extrabold text-dark">{s.cgpa}</span></td>
+                    <td>
+                      {s.is_blacklisted ? (
+                        <StatusBadge status="rejected" />
                       ) : (
-                        <span className="status-pill pill-success">
-                          ● Active
-                        </span>
+                        <StatusBadge status="approved" />
                       )}
                     </td>
                     <td className="text-end">
                       <button
-                        className={`btn btn-sm ${student.is_blacklisted ? 'btn-success' : 'btn-outline-danger'} px-3`}
-                        style={{ borderRadius: '6px', fontSize: '12px' }}
-                        onClick={() => handleToggleBlacklist(student.id)}
+                        className={`btn btn-sm px-3 py-1 fs-8 ${
+                          s.is_blacklisted ? 'btn-success' : 'btn-outline-danger'
+                        }`}
+                        style={{ borderRadius: '6px' }}
+                        onClick={() => handleToggleBlacklist(s.id)}
                       >
-                        {student.is_blacklisted ? 'Unblacklist' : 'Blacklist'}
+                        {s.is_blacklisted ? 'Reinstate Access' : 'Blacklist Student'}
                       </button>
                     </td>
                   </tr>

@@ -1,40 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import NotificationDrawer, { useNotificationCount } from '../../components/common/NotificationDrawer';
+import './company.css';
 
 const CreateDrive = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const initialFormState = {
     job_title: '',
     job_description: '',
-    eligibility_cgpa: '',
-    eligible_branches: [],
+    package_lpa: '',
+    employment_type: 'Full-time',
+    eligibility_cgpa: '7.5',
+    graduation_year: '2025',
+    eligible_branches: ['Computer Science', 'Information Technology'],
     application_deadline: '',
-    package_lpa: ''
+    interview_mode: 'Online',
   };
 
   const [formData, setFormData] = useState(initialFormState);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
-  const [errorMessage, setErrorMessage] = useState(null);
+  const [errorMessage, setErrorMessage]     = useState(null);
+  const [time, setTime]         = useState(new Date());
 
-  const branchesOptions = ['CSE', 'IT', 'ECE', 'EEE', 'MECH', 'CIVIL'];
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { count: unreadCount, refresh: refreshCount } = useNotificationCount();
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const availableBranches = [
+    'Computer Science',
+    'Information Technology',
+    'ECE',
+    'EEE',
+    'Mechanical',
+    'Civil',
+    'AIML',
+    'Data Science',
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckboxChange = (branch) => {
-    setFormData(prev => {
-      const branches = prev.eligible_branches.includes(branch)
-        ? prev.eligible_branches.filter(b => b !== branch)
-        : [...prev.eligible_branches, branch];
-      return {
-        ...prev,
-        eligible_branches: branches
-      };
+  const toggleBranch = (branchName) => {
+    if (branchName === 'All Branches') {
+      if (formData.eligible_branches.length === availableBranches.length) {
+        setFormData((prev) => ({ ...prev, eligible_branches: [] }));
+      } else {
+        setFormData((prev) => ({ ...prev, eligible_branches: [...availableBranches] }));
+      }
+      return;
+    }
+
+    setFormData((prev) => {
+      const exists = prev.eligible_branches.includes(branchName);
+      const updated = exists
+        ? prev.eligible_branches.filter((b) => b !== branchName)
+        : [...prev.eligible_branches, branchName];
+      return { ...prev, eligible_branches: updated };
     });
   };
 
@@ -53,168 +84,288 @@ const CreateDrive = () => {
       const payload = {
         job_title: formData.job_title,
         job_description: formData.job_description,
+        package_lpa: parseFloat(formData.package_lpa),
         eligibility_cgpa: parseFloat(formData.eligibility_cgpa),
         eligible_branches: formData.eligible_branches,
         application_deadline: formData.application_deadline,
-        package_lpa: parseFloat(formData.package_lpa)
       };
 
       const res = await api.post('/company/drives', payload);
-      
+
       if (res.status === 201) {
-        setSuccessMessage('Drive submitted for Admin approval');
-        setFormData(initialFormState);
+        setSuccessMessage('Drive submitted for Admin approval! Redirecting to drives dashboard...');
+        setTimeout(() => {
+          navigate('/company/drives');
+        }, 1500);
       }
     } catch (err) {
       console.error('Error creating drive:', err);
-      setErrorMessage(err.response?.data?.error || 'Failed to submit drive request. Please check fields.');
+      setErrorMessage(err.response?.data?.error || 'Failed to submit drive request.');
     } finally {
       setLoading(false);
     }
   };
 
+  const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
   return (
-    <div className="row justify-content-center">
-      <div className="col-lg-9">
-        <div className="panel-card">
-          <div className="panel-header">
-            <h5 className="panel-title">📢 Post New Placement Drive</h5>
-            <span className="status-pill pill-info">EEC Placements Partner</span>
-          </div>
-          <div className="panel-body">
-            {successMessage && (
-              <div className="alert alert-success alert-dismissible fade show mb-4" role="alert">
-                <strong>Success!</strong> {successMessage}
-                <button type="button" className="btn-close" onClick={() => setSuccessMessage(null)} aria-label="Close"></button>
-              </div>
-            )}
+    <div className="cp-page">
+      {/* ── TOPBAR ── */}
+      <div className="cp-topbar">
+        <span className="cp-topbar__title">Post New Drive</span>
+        <div className="cp-topbar__right">
+          <span className="cp-live-badge"><span className="cp-live-dot" />LIVE</span>
+          <span className="cp-time-badge">{timeStr} IST</span>
+          <span className="cp-role-badge">COMPANY</span>
+          <button className="cp-topbar__bell" title="Notifications" onClick={() => setIsDrawerOpen(true)}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {unreadCount > 0 && <span className="cp-topbar__bell-badge">{unreadCount}</span>}
+          </button>
+          <button className="cp-btn-ghost" onClick={() => { logout(); navigate('/login'); }}>Sign Out</button>
+          <button className="cp-btn-primary" onClick={() => navigate('/company/drives')}>Manage Drives</button>
+        </div>
+      </div>
 
-            {errorMessage && (
-              <div className="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-                <strong>Error:</strong> {errorMessage}
-                <button type="button" className="btn-close" onClick={() => setErrorMessage(null)} aria-label="Close"></button>
-              </div>
-            )}
+      <div className="cp-content" style={{ maxWidth: '960px' }}>
+        {/* Breadcrumb */}
+        <div className="cp-breadcrumb">
+          <Link to="/company">Home</Link>
+          <span className="cp-breadcrumb__sep">›</span>
+          <span>Post New Drive</span>
+        </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label htmlFor="job_title" className="form-label fw-bold" style={{ fontSize: '12px' }}>JOB TITLE *</label>
+        {/* Info Banner */}
+        <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#1E40AF', display: 'flex', gap: '8px', marginBottom: '20px' }}>
+          <span>💡</span>
+          <span>Your drive will be reviewed by the Placement Cell and typically approved within 24 hours.</span>
+        </div>
+
+        {successMessage && (
+          <div className="alert alert-success rounded-3 mb-4">{successMessage}</div>
+        )}
+        {errorMessage && (
+          <div className="alert alert-danger rounded-3 mb-4">{errorMessage}</div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Card 1: Drive Details */}
+          <div className="cp-panel">
+            <div className="cp-panel__header">
+              <span className="cp-panel__title">Drive Details</span>
+            </div>
+            <div className="cp-panel__body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>JOB TITLE *</label>
                 <input
                   type="text"
-                  className="form-control"
-                  id="job_title"
                   name="job_title"
                   value={formData.job_title}
                   onChange={handleChange}
-                  placeholder="e.g. Associate Software Development Engineer"
+                  placeholder="e.g. Backend Software Engineer"
+                  style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
                   required
                 />
               </div>
 
-              <div className="row g-3 mb-3">
-                <div className="col-md-6">
-                  <label htmlFor="package_lpa" className="form-label fw-bold" style={{ fontSize: '12px' }}>PACKAGE (LPA) *</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>PACKAGE (LPA) *</label>
                   <input
                     type="number"
-                    className="form-control"
-                    id="package_lpa"
                     name="package_lpa"
                     value={formData.package_lpa}
                     onChange={handleChange}
-                    placeholder="e.g. 8.5"
+                    placeholder="22"
                     min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label htmlFor="eligibility_cgpa" className="form-label fw-bold" style={{ fontSize: '12px' }}>MINIMUM CGPA *</label>
-                  <input
-                    type="number"
-                    className="form-control"
-                    id="eligibility_cgpa"
-                    name="eligibility_cgpa"
-                    value={formData.eligibility_cgpa}
-                    onChange={handleChange}
-                    placeholder="e.g. 7.5"
-                    min="0"
-                    max="10"
                     step="0.1"
+                    style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
                     required
                   />
                 </div>
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label fw-bold d-block" style={{ fontSize: '12px' }}>ELIGIBLE ACADEMIC BRANCHES *</label>
-                <div className="p-3 border rounded" style={{ background: 'var(--table-hover)', borderColor: 'var(--card-border)' }}>
-                  <div className="row">
-                    {branchesOptions.map(branch => (
-                      <div key={branch} className="col-md-4 col-6 mb-2">
-                        <div className="form-check">
-                          <input
-                            className="form-check-input"
-                            type="checkbox"
-                            id={`branch-${branch}`}
-                            checked={formData.eligible_branches.includes(branch)}
-                            onChange={() => handleCheckboxChange(branch)}
-                          />
-                          <label className="form-check-label ps-1" style={{ fontSize: '13px' }} htmlFor={`branch-${branch}`}>
-                            {branch}
-                          </label>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>EMPLOYMENT TYPE</label>
+                  <select
+                    name="employment_type"
+                    value={formData.employment_type}
+                    onChange={handleChange}
+                    style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
+                  >
+                    <option value="Full-time">Full-time</option>
+                    <option value="Internship">Internship</option>
+                    <option value="Contract">Contract</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="mb-3">
-                <label htmlFor="application_deadline" className="form-label fw-bold" style={{ fontSize: '12px' }}>APPLICATION DEADLINE *</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  id="application_deadline"
-                  name="application_deadline"
-                  value={formData.application_deadline}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="mb-4">
-                <label htmlFor="job_description" className="form-label fw-bold" style={{ fontSize: '12px' }}>JOB DESCRIPTION & REQUIREMENTS *</label>
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>JOB DESCRIPTION *</label>
                 <textarea
-                  className="form-control"
-                  id="job_description"
                   name="job_description"
-                  rows="5"
                   value={formData.job_description}
                   onChange={handleChange}
-                  placeholder="Describe key responsibilities, required technical skills, and selection process..."
+                  rows="4"
+                  placeholder="Describe the role, responsibilities, tech stack..."
+                  style={{ width: '100%', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '10px 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA', resize: 'vertical' }}
                   required
                 ></textarea>
               </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary w-100 py-2 fw-bold"
-                style={{ borderRadius: '8px' }}
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Submitting Drive Request...
-                  </>
-                ) : (
-                  'Submit Drive Request for Admin Approval'
-                )}
-              </button>
-            </form>
+            </div>
           </div>
-        </div>
+
+          {/* Card 2: Eligibility Criteria */}
+          <div className="cp-panel">
+            <div className="cp-panel__header">
+              <span className="cp-panel__title">Eligibility Criteria</span>
+            </div>
+            <div className="cp-panel__body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>MINIMUM CGPA</label>
+                  <input
+                    type="number"
+                    name="eligibility_cgpa"
+                    value={formData.eligibility_cgpa}
+                    onChange={handleChange}
+                    placeholder="7.5"
+                    min="0"
+                    max="10"
+                    step="0.1"
+                    style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>GRADUATION YEAR</label>
+                  <select
+                    name="graduation_year"
+                    value={formData.graduation_year}
+                    onChange={handleChange}
+                    style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
+                  >
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '8px' }}>ELIGIBLE BRANCHES</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {availableBranches.map((branch) => {
+                    const isSelected = formData.eligible_branches.includes(branch);
+                    return (
+                      <button
+                        key={branch}
+                        type="button"
+                        onClick={() => toggleBranch(branch)}
+                        style={{
+                          height: '28px',
+                          padding: '0 14px',
+                          borderRadius: '20px',
+                          border: isSelected ? '1px solid #0F766E' : '1px solid #D1D5DB',
+                          background: isSelected ? '#CCFBF1' : '#fff',
+                          color: isSelected ? '#0F766E' : '#4B5563',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        {branch}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => toggleBranch('All Branches')}
+                    style={{
+                      height: '28px',
+                      padding: '0 14px',
+                      borderRadius: '20px',
+                      border: '1px solid #E5E7EB',
+                      background: formData.eligible_branches.length === availableBranches.length ? '#0F766E' : '#fff',
+                      color: formData.eligible_branches.length === availableBranches.length ? '#fff' : '#4B5563',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    All Branches
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Schedule */}
+          <div className="cp-panel">
+            <div className="cp-panel__header">
+              <span className="cp-panel__title">Schedule</span>
+            </div>
+            <div className="cp-panel__body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>APPLICATION DEADLINE</label>
+                  <input
+                    type="date"
+                    name="application_deadline"
+                    value={formData.application_deadline}
+                    onChange={handleChange}
+                    style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', display: 'block', marginBottom: '6px' }}>INTERVIEW MODE</label>
+                  <select
+                    name="interview_mode"
+                    value={formData.interview_mode}
+                    onChange={handleChange}
+                    style={{ width: '100%', height: '36px', border: '1px solid #E5E7EB', borderRadius: '6px', padding: '0 12px', fontSize: '13px', outline: 'none', background: '#FAFAFA' }}
+                  >
+                    <option value="Online">Online</option>
+                    <option value="In-Person">In-Person</option>
+                    <option value="Hybrid">Hybrid</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Actions */}
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              type="submit"
+              className="cp-btn-primary"
+              style={{ flex: 1, height: '40px', fontSize: '14px' }}
+              disabled={loading}
+            >
+              {loading ? 'Submitting...' : 'Submit Drive for Approval →'}
+            </button>
+            <button
+              type="button"
+              className="cp-btn-ghost"
+              style={{ width: '140px', height: '40px', fontSize: '14px' }}
+              onClick={() => navigate('/company/drives')}
+            >
+              Save Draft
+            </button>
+          </div>
+        </form>
       </div>
+
+      <NotificationDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => { setIsDrawerOpen(false); refreshCount(); }}
+      />
     </div>
   );
 };

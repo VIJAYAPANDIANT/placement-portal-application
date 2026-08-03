@@ -61,25 +61,10 @@ const MainLayout = ({ children }) => {
   };
 
   return (
-    <div className="d-flex min-vh-100">
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <div className="main-content flex-grow-1 d-flex flex-column">
-        {/* Topbar Header */}
-        <header className="topbar">
-          <div className="d-flex align-items-center gap-2">
-            <span className="fw-bold fs-6">{getPageTitle(location.pathname)}</span>
-          </div>
-          <div className="d-flex align-items-center gap-3">
-            <div className="text-end d-none d-md-block" style={{ fontSize: '12px' }}>
-              <span className="fw-semibold text-muted d-block">{currentTime.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
-              <span className="fw-bold" style={{ letterSpacing: '0.5px' }}>{currentTime.toLocaleTimeString()}</span>
-            </div>
-            <ThemeToggle />
-          </div>
-        </header>
-
-        {/* Main Content View */}
-        <main className="p-4 flex-grow-1">
+      <div className="main-content" style={{ flex: 1 }}>
+        <main style={{ minHeight: '100vh' }}>
           {children}
         </main>
       </div>
@@ -110,6 +95,7 @@ function App() {
           <Route path="/company" element={<ProtectedRoute role="company"><CompanyDashboard /></ProtectedRoute>} />
           <Route path="/company/drives/create" element={<ProtectedRoute role="company"><CreateDrive /></ProtectedRoute>} />
           <Route path="/company/drives" element={<ProtectedRoute role="company"><MyDrives /></ProtectedRoute>} />
+          <Route path="/company/applicants" element={<ProtectedRoute role="company"><DriveApplicants /></ProtectedRoute>} />
           <Route path="/company/drives/:id/applicants" element={<ProtectedRoute role="company"><DriveApplicants /></ProtectedRoute>} />
           
           {/* Student Routes */}

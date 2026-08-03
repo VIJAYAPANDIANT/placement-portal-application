@@ -3,6 +3,7 @@ from datetime import date
 from app import db, cache
 from app.utils.decorators import role_required
 from app.models import Company, Student, PlacementDrive, Application
+from app.models.notification import Notification, create_notification
 
 # Define the Blueprint for admin-side endpoints
 admin_bp = Blueprint('admin', __name__)
@@ -48,9 +49,19 @@ def approve_company(company_id):
     if action == 'approve':
         company.approval_status = 'approved'
         message = 'Company approved successfully'
+        create_notification(
+            title='Company Approved',
+            message=f'{company.name} has been approved and is now active on the portal.',
+            category='company_approved'
+        )
     else:
         company.approval_status = 'rejected'
         message = 'Company rejected successfully'
+        create_notification(
+            title='Company Rejected',
+            message=f'{company.name} registration was rejected.',
+            category='company_rejected'
+        )
 
     try:
         db.session.commit()
@@ -130,12 +141,26 @@ def approve_drive(drive_id):
     if action not in ['approve', 'reject']:
         return jsonify({'message': 'Invalid action. Must be "approve" or "reject"'}), 400
 
+    # Fetch company name for notification message
+    company = db.session.get(Company, drive.company_id)
+    company_name = company.name if company else 'Unknown Company'
+
     if action == 'approve':
         drive.status = 'approved'
         message = 'Placement drive approved successfully'
+        create_notification(
+            title='Drive Approved',
+            message=f'{company_name} — "{drive.job_title}" drive is now live for students.',
+            category='drive_approved'
+        )
     else:
         drive.status = 'rejected'
         message = 'Placement drive rejected successfully'
+        create_notification(
+            title='Drive Rejected',
+            message=f'{company_name} — "{drive.job_title}" drive was rejected.',
+            category='drive_rejected'
+        )
 
     try:
         db.session.commit()
@@ -294,3 +319,125 @@ def get_all_students():
             'is_active': student.is_active
         })
     return jsonify(response_data), 200
+
+
+@admin_bp.route('/dashboard/extended-stats', methods=['GET'])
+@role_required('admin')
+def get_admin_extended_stats():
+    total_students = Student.query.count()
+    placed_students_count = db.session.query(Application.student_id).filter(Application.status == 'selected').distinct().count()
+    placement_rate = round((placed_students_count / total_students * 100), 1) if total_students > 0 else 0.0
+
+    total_companies = Company.query.filter_by(approval_status='approved').count()
+    pending_companies = Company.query.filter_by(approval_status='pending').count()
+
+    total_drives = PlacementDrive.query.count()
+    pending_drives = PlacementDrive.query.filter_by(status='pending').count()
+    live_drives = PlacementDrive.query.filter_by(status='approved').count()
+
+    # Package Statistics
+    drives = PlacementDrive.query.all()
+    packages = [d.package_lpa for d in drives if d.package_lpa]
+    highest_pkg = max(packages) if packages else 0.0
+    avg_pkg = round(sum(packages) / len(packages), 2) if packages else 0.0
+
+    package_distribution = {
+        "< 5 LPA": sum(1 for p in packages if p < 5),
+        "5 - 10 LPA": sum(1 for p in packages if 5 <= p < 10),
+        "10 - 20 LPA": sum(1 for p in packages if 10 <= p < 20),
+        "20+ LPA": sum(1 for p in packages if p >= 20)
+    }
+
+    # Top Recruiters
+    top_recruiters_query = db.session.query(
+        Company.name.label('company_name'),
+        db.func.count(Application.id).label('hires')
+    ).join(PlacementDrive, PlacementDrive.company_id == Company.id)\
+     .join(Application, Application.drive_id == PlacementDrive.id)\
+     .filter(Application.status == 'selected')\
+     .group_by(Company.id)\
+     .order_by(db.desc('hires')).limit(5).all()
+
+    top_recruiters = [{"company_name": r.company_name, "hires": r.hires} for r in top_recruiters_query]
+
+    # Recent selections
+    recent_selections_query = db.session.query(
+        Student.name.label('student_name'),
+        Company.name.label('company_name'),
+        PlacementDrive.job_title,
+        PlacementDrive.package_lpa
+    ).join(Application, Application.student_id == Student.id)\
+     .join(PlacementDrive, Application.drive_id == PlacementDrive.id)\
+     .join(Company, PlacementDrive.company_id == Company.id)\
+     .filter(Application.status == 'selected')\
+     .order_by(Application.applied_on.desc()).limit(5).all()
+
+    recent_selections = [{
+        "student_name": r.student_name,
+        "company_name": r.company_name,
+        "job_title": r.job_title,
+        "package_lpa": r.package_lpa
+    } for r in recent_selections_query]
+
+    return jsonify({
+        "total_students": total_students,
+        "placed_students": placed_students_count,
+        "placement_rate": placement_rate,
+        "total_companies": total_companies,
+        "pending_companies": pending_companies,
+        "total_drives": total_drives,
+        "pending_drives": pending_drives,
+        "live_drives": live_drives,
+        "highest_package": highest_pkg,
+        "average_package": avg_pkg,
+        "package_distribution": package_distribution,
+        "top_recruiters": top_recruiters,
+        "recent_selections": recent_selections
+    }), 200
+
+
+# ─── Notification Endpoints ───────────────────────────────────────────────────
+
+@admin_bp.route('/notifications', methods=['GET'])
+@role_required('admin')
+def get_notifications():
+    """
+    GET /api/admin/notifications
+    Returns all notifications ordered by newest first.
+    Query param: ?unread_only=true
+    """
+    unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+    query = Notification.query
+    if unread_only:
+        query = query.filter_by(is_read=False)
+    notifications = query.order_by(Notification.created_at.desc()).limit(50).all()
+    return jsonify([n.to_dict() for n in notifications]), 200
+
+
+@admin_bp.route('/notifications/unread-count', methods=['GET'])
+@role_required('admin')
+def get_unread_count():
+    """GET /api/admin/notifications/unread-count — returns {count: N}"""
+    count = Notification.query.filter_by(is_read=False).count()
+    return jsonify({'count': count}), 200
+
+
+@admin_bp.route('/notifications/<int:notif_id>/read', methods=['PUT'])
+@role_required('admin')
+def mark_notification_read(notif_id):
+    """PUT /api/admin/notifications/<id>/read — mark single notification as read"""
+    notif = db.session.get(Notification, notif_id)
+    if not notif:
+        return jsonify({'message': 'Notification not found'}), 404
+    notif.is_read = True
+    db.session.commit()
+    return jsonify({'message': 'Marked as read'}), 200
+
+
+@admin_bp.route('/notifications/mark-all-read', methods=['PUT'])
+@role_required('admin')
+def mark_all_notifications_read():
+    """PUT /api/admin/notifications/mark-all-read — mark all as read"""
+    Notification.query.filter_by(is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'message': 'All notifications marked as read'}), 200

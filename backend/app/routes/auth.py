@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt, get_jwt_identity
 from app import db, cache
 from app.models.admin import Admin
 from app.models.company import Company
 from app.models.student import Student
+from app.models.notification import Notification, create_notification
 
 # Create the authentication Blueprint. URL prefixes will be configured in create_app().
 auth_bp = Blueprint('auth', __name__)
@@ -175,9 +176,103 @@ def register_company():
             is_active=True
         )
         db.session.add(new_company)
+
+        # Notify admin that a new company is awaiting approval
+        create_notification(
+            title='New Company Registration',
+            message=f'{name} ({industry}) has registered and is awaiting your approval.',
+            category='company_register'
+        )
+
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        return jsonify({'message': f'Failed to create company: {str(e)}'}), 500
-        
-    return jsonify({'message': 'Registration submitted, await Admin approval'}), 201
+        return jsonify({'message': f'Database error: {str(e)}'}), 500
+
+    return jsonify({'message': 'Company registered successfully. Account pending Admin approval'}), 201
+
+
+
+@auth_bp.route('/notifications', methods=['GET'])
+@jwt_required()
+def get_user_notifications():
+    claims = get_jwt()
+    role = claims.get('role')
+    user_id = int(get_jwt_identity())
+
+    unread_only = request.args.get('unread_only', 'false').lower() == 'true'
+    query = Notification.query
+
+    # Role-based notification routing
+    if role == 'admin':
+        # Admin gets all admin-bound notifications
+        query = query.filter_by(role='admin')
+    else:
+        # Students/Companies get notifications targeting their role and specifically their user_id,
+        # or general notifications for their role (user_id IS NULL)
+        from sqlalchemy import or_
+        query = query.filter_by(role=role).filter(or_(Notification.user_id == None, Notification.user_id == user_id))
+
+    if unread_only:
+        query = query.filter_by(is_read=False)
+
+    notifications = query.order_by(Notification.created_at.desc()).limit(50).all()
+    return jsonify([n.to_dict() for n in notifications]), 200
+
+
+@auth_bp.route('/notifications/unread-count', methods=['GET'])
+@jwt_required()
+def get_unread_count():
+    claims = get_jwt()
+    role = claims.get('role')
+    user_id = int(get_jwt_identity())
+
+    query = Notification.query.filter_by(is_read=False)
+
+    if role == 'admin':
+        query = query.filter_by(role='admin')
+    else:
+        from sqlalchemy import or_
+        query = query.filter_by(role=role).filter(or_(Notification.user_id == None, Notification.user_id == user_id))
+
+    count = query.count()
+    return jsonify({'count': count}), 200
+
+
+@auth_bp.route('/notifications/<int:notif_id>/read', methods=['PUT'])
+@jwt_required()
+def mark_notification_read(notif_id):
+    claims = get_jwt()
+    role = claims.get('role')
+    user_id = int(get_jwt_identity())
+
+    notif = db.session.get(Notification, notif_id)
+    if not notif:
+        return jsonify({'message': 'Notification not found'}), 404
+
+    # Security check: Ensure user owns this notification
+    if notif.role != role:
+        return jsonify({'message': 'Unauthorized'}), 403
+    if notif.user_id is not None and notif.user_id != user_id:
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    notif.is_read = True
+    db.session.commit()
+    return jsonify({'message': 'Marked as read'}), 200
+
+
+@auth_bp.route('/notifications/mark-all-read', methods=['PUT'])
+@jwt_required()
+def mark_all_notifications_read():
+    claims = get_jwt()
+    role = claims.get('role')
+    user_id = int(get_jwt_identity())
+
+    query = Notification.query.filter_by(is_read=False, role=role)
+    if role != 'admin':
+        query = query.filter_by(user_id=user_id)
+
+    query.update({'is_read': True}, synchronize_session=False)
+    db.session.commit()
+    return jsonify({'message': 'All notifications marked as read'}), 200
+

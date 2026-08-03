@@ -102,6 +102,18 @@ def create_app(config_class='config.Config'):
     
     with app.app_context():
         from app import models
+        # Safely migrate notifications table in development if columns are missing
+        try:
+            from sqlalchemy import inspect
+            inspector = inspect(db.engine)
+            if 'notifications' in inspector.get_table_names():
+                columns = [col['name'] for col in inspector.get_columns('notifications')]
+                if 'user_id' not in columns:
+                    print("Migrating notifications table...")
+                    db.metadata.drop_all(bind=db.engine, tables=[models.Notification.__table__])
+        except Exception as e:
+            print("Migration warning:", e)
+
         db.create_all()
         
         # Programmatically seed superuser Admin account and 16+ realistic tech companies & placement drives

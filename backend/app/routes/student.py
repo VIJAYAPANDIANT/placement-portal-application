@@ -58,7 +58,43 @@ def apply_to_drive(drive_id):
             "message": "CGPA does not meet eligibility requirement"
         }), 400
 
-    if student.branch not in drive.get_branches():
+    # Branch compatibility check
+    student_branch = student.branch
+    eligible_branches = drive.get_branches()
+    
+    def get_equivalent_branches(br):
+        if not br:
+            return []
+        mapping = {
+            'cse': ['computer science', 'cse', 'computer science (cse)'],
+            'computer science': ['computer science', 'cse', 'computer science (cse)'],
+            'it': ['information technology', 'it', 'information technology (it)'],
+            'information technology': ['information technology', 'it', 'information technology (it)'],
+            'aiml': ['artificial intelligence', 'aiml', 'artificial intelligence & machine learning (aiml)', 'artificial intelligence & machine learning'],
+            'artificial intelligence': ['artificial intelligence', 'aiml', 'artificial intelligence & machine learning (aiml)', 'artificial intelligence & machine learning'],
+            'ece': ['electronics & communication', 'ece', 'electronics & communication (ece)'],
+            'electronics & communication': ['electronics & communication', 'ece', 'electronics & communication (ece)'],
+            'eee': ['electrical & electronics', 'eee', 'electrical & electronics (eee)'],
+            'electrical & electronics': ['electrical & electronics', 'eee', 'electrical & electronics (eee)'],
+            'mech': ['mechanical engineering', 'mechanical', 'mechanical engineering (mech)', 'mech'],
+            'mechanical': ['mechanical engineering', 'mechanical', 'mechanical engineering (mech)', 'mech'],
+            'mechanical engineering': ['mechanical engineering', 'mechanical', 'mechanical engineering (mech)', 'mech'],
+            'civil': ['civil engineering', 'civil', 'civil engineering (civil)', 'civil'],
+            'civil engineering': ['civil engineering', 'civil', 'civil engineering (civil)', 'civil'],
+            'ds': ['data science', 'ds', 'data science (ds)'],
+            'data science': ['data science', 'ds', 'data science (ds)']
+        }
+        return mapping.get(br.lower().strip(), [br.lower().strip()])
+
+    student_equivs = get_equivalent_branches(student_branch)
+    is_eligible = False
+    for b in eligible_branches:
+        b_equivs = get_equivalent_branches(b)
+        if any(eq in student_equivs for eq in b_equivs) or b.lower().strip() == student_branch.lower().strip():
+            is_eligible = True
+            break
+
+    if not is_eligible:
         return jsonify({
             "error": "Your branch is not eligible for this drive",
             "message": "Your branch is not eligible for this drive"
@@ -171,6 +207,35 @@ def export_csv():
     current_app.celery.send_task('app.tasks.celery_tasks.export_student_applications_csv', args=[student_id, student.email])
     return jsonify({"message": "Export started, you will receive an email shortly"}), 200
 
+
+@student_bp.route('/download-csv', methods=['GET'])
+@role_required('student')
+def download_csv():
+    student_id = int(get_jwt_identity())
+    apps = db.session.query(
+        Company.name.label('company_name'),
+        PlacementDrive.job_title,
+        PlacementDrive.package_lpa,
+        Application.applied_on,
+        Application.status
+    ).join(PlacementDrive, Application.drive_id == PlacementDrive.id)\
+     .join(Company, PlacementDrive.company_id == Company.id)\
+     .filter(Application.student_id == student_id).all()
+
+    csv_lines = ["Company,Job Title,Package LPA,Applied On,Status"]
+    for app in apps:
+        applied_str = app.applied_on.strftime("%Y-%m-%d") if app.applied_on else ""
+        csv_lines.append(f"{app.company_name},{app.job_title},{app.package_lpa},{applied_str},{app.status}")
+    
+    csv_content = "\n".join(csv_lines) + "\n"
+
+    from flask import Response
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={"Content-disposition": "attachment; filename=applications.csv"}
+    )
+
 # ==========================================
 # NEW STUDENT PROFILE ROUTES
 # ==========================================
@@ -276,3 +341,111 @@ def upload_resume():
         "message": "Resume uploaded",
         "resume_url": rel_url
     }), 200
+
+
+@student_bp.route('/dashboard/summary', methods=['GET'])
+@role_required('student')
+def get_student_dashboard_summary():
+    student_id = int(get_jwt_identity())
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    # Calculate profile completeness
+    skills_list = student.get_skills()
+    fields = [
+        student.name, student.email, student.roll_number, student.branch,
+        student.cgpa, student.graduation_year, student.resume_url,
+        student.linkedin_url, student.github_url, student.portfolio_url,
+        student.bio, skills_list
+    ]
+    filled_count = sum(1 for val in fields if val is not None and val != '' and val != [])
+    profile_completeness = round((filled_count / 12.0) * 100)
+
+    # Calculate drives student is eligible for
+    all_approved_drives = db.session.query(PlacementDrive).join(
+        Company, PlacementDrive.company_id == Company.id
+    ).filter(
+        PlacementDrive.status == 'approved',
+        Company.approval_status == 'approved'
+    ).all()
+
+    eligible_drives_count = 0
+    for drive in all_approved_drives:
+        if student.cgpa >= drive.eligibility_cgpa and student.branch in drive.get_branches():
+            eligible_drives_count += 1
+
+    # Student applications
+    apps = Application.query.filter_by(student_id=student_id).all()
+    applied_count = len(apps)
+    shortlisted_count = sum(1 for a in apps if a.status == 'shortlisted')
+    selected_count = sum(1 for a in apps if a.status == 'selected')
+    rejected_count = sum(1 for a in apps if a.status == 'rejected')
+
+    # Upcoming interview
+    next_interview = db.session.query(
+        InterviewSchedule.interview_date,
+        InterviewSchedule.interview_mode,
+        InterviewSchedule.location_or_link,
+        PlacementDrive.job_title,
+        Company.name.label('company_name')
+    ).join(PlacementDrive, InterviewSchedule.drive_id == PlacementDrive.id)\
+     .join(Company, PlacementDrive.company_id == Company.id)\
+     .join(Application, Application.drive_id == PlacementDrive.id)\
+     .filter(Application.student_id == student_id, Application.status.in_(['shortlisted', 'selected']))\
+     .order_by(InterviewSchedule.interview_date.asc()).first()
+
+    interview_data = None
+    if next_interview:
+        interview_data = {
+            "date": next_interview.interview_date.strftime("%Y-%m-%d"),
+            "mode": next_interview.interview_mode,
+            "location_or_link": next_interview.location_or_link,
+            "job_title": next_interview.job_title,
+            "company_name": next_interview.company_name
+        }
+
+    # Status breakdown for pie chart
+    status_breakdown = {
+        "applied": applied_count,
+        "shortlisted": shortlisted_count,
+        "selected": selected_count,
+        "rejected": rejected_count
+    }
+
+    # Recent applications (latest 5)
+    recent_apps_query = db.session.query(
+        Application.id,
+        Application.status,
+        Application.applied_on,
+        PlacementDrive.job_title,
+        PlacementDrive.package_lpa,
+        Company.name.label('company_name')
+    ).join(PlacementDrive, Application.drive_id == PlacementDrive.id)\
+     .join(Company, PlacementDrive.company_id == Company.id)\
+     .filter(Application.student_id == student_id)\
+     .order_by(Application.applied_on.desc()).limit(5).all()
+
+    recent_applications = [{
+        "id": app.id,
+        "status": app.status,
+        "applied_on": app.applied_on.strftime("%Y-%m-%d") if app.applied_on else None,
+        "job_title": app.job_title,
+        "package_lpa": app.package_lpa,
+        "company_name": app.company_name
+    } for app in recent_apps_query]
+
+    return jsonify({
+        "eligible_drives": eligible_drives_count,
+        "applied_drives": applied_count,
+        "interview_count": shortlisted_count + selected_count,
+        "offer_count": selected_count,
+        "placement_status": "Placed" if selected_count > 0 else "In Progress",
+        "cgpa": student.cgpa,
+        "profile_completion": profile_completeness,
+        "resume_uploaded": bool(student.resume_url),
+        "status_breakdown": status_breakdown,
+        "recent_applications": recent_applications,
+        "upcoming_interview": interview_data
+    }), 200
+

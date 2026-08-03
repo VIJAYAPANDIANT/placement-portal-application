@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
+import StatusBadge from '../../components/common/StatusBadge';
+import SkeletonLoader from '../../components/common/SkeletonLoader';
+import EmptyState from '../../components/common/EmptyState';
 
 const PendingCompanies = () => {
   const [companies, setCompanies] = useState([]);
@@ -29,106 +32,87 @@ const PendingCompanies = () => {
     try {
       setAlert(null);
       const response = await api.put(`/admin/companies/${id}/approve`, { action });
-      
-      setCompanies(prev => prev.filter(company => company.id !== id));
-      
+      setCompanies((prev) => prev.filter((company) => company.id !== id));
       setAlert({
         type: 'success',
-        message: response.data.message || `Company successfully ${action === 'approve' ? 'approved' : 'rejected'}.`
+        message: response.data.message || `Company successfully ${action === 'approve' ? 'approved' : 'rejected'}.`,
       });
-      
       setTimeout(() => setAlert(null), 3000);
     } catch (err) {
       console.error(`Error updating company ${id} status:`, err);
       setAlert({
         type: 'danger',
-        message: err.response?.data?.message || `Failed to ${action} company.`
+        message: err.response?.data?.message || `Failed to ${action} company.`,
       });
     }
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3 text-muted">Fetching pending company requests...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-0">{error}</p>
-      </div>
-    );
-  }
-
   return (
-    <div>
+    <div className="container-fluid p-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h4 className="fw-extrabold mb-1 text-dark">Company Approval Funnel</h4>
+          <p className="text-muted fs-7 mb-0">Review recruiter registration requests and verify organization credentials.</p>
+        </div>
+      </div>
+
       {alert && (
-        <div className={`alert alert-${alert.type} alert-dismissible fade show mb-4`} role="alert">
+        <div className={`alert alert-${alert.type} rounded-3 mb-4`} role="alert">
           {alert.message}
-          <button type="button" className="btn-close" onClick={() => setAlert(null)} aria-label="Close"></button>
         </div>
       )}
 
-      <div className="panel-card">
-        <div className="panel-header">
-          <h5 className="panel-title">Pending Company Registration Approvals</h5>
-          <span className="status-pill pill-warning">
-            ● {companies.length} Pending
-          </span>
+      <div className="card saas-card border-0 p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h6 className="fw-bold text-dark mb-0">Pending Recruiters</h6>
+          <StatusBadge status="pending" />
         </div>
 
-        {companies.length === 0 ? (
-          <div className="text-center py-5">
-            <div style={{ fontSize: '2.5rem' }}>🏢</div>
-            <p className="mt-3 fw-semibold mb-1">No pending companies to review</p>
-            <small className="text-muted">All company registrations have been processed and approved.</small>
-          </div>
+        {loading ? (
+          <SkeletonLoader type="table" count={4} />
+        ) : error ? (
+          <div className="alert alert-danger mb-0">{error}</div>
+        ) : companies.length === 0 ? (
+          <EmptyState
+            title="All Companies Processed"
+            message="There are no pending company registration requests at this time."
+            icon="bi-building-check"
+          />
         ) : (
           <div className="table-responsive">
-            <table className="enhanced-table">
-              <thead>
+            <table className="table align-middle border-top">
+              <thead className="table-light fs-7 text-uppercase text-muted">
                 <tr>
-                  <th>#</th>
                   <th>Company Name</th>
-                  <th>Email</th>
+                  <th>Official Email</th>
                   <th>Industry</th>
                   <th>HR Contact</th>
                   <th className="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {companies.map((company, idx) => (
+                {companies.map((company) => (
                   <tr key={company.id}>
-                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
-                    <td className="fw-bold">{company.name}</td>
-                    <td>{company.email}</td>
-                    <td>
-                      <span className="status-pill pill-info">
-                        {company.industry || 'General IT'}
-                      </span>
-                    </td>
-                    <td>{company.hr_contact || 'Not provided'}</td>
+                    <td><span className="fw-bold text-dark">{company.name}</span></td>
+                    <td className="text-muted">{company.email}</td>
+                    <td><span className="badge bg-info-subtle text-info fw-semibold">{company.industry || 'IT'}</span></td>
+                    <td className="text-muted">{company.hr_contact || 'N/A'}</td>
                     <td className="text-end">
-                      <button
-                        className="btn btn-sm btn-success me-2 px-3"
-                        style={{ borderRadius: '6px', fontSize: '12px' }}
-                        onClick={() => handleApproveReject(company.id, 'approve')}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        className="btn btn-sm btn-outline-danger px-3"
-                        style={{ borderRadius: '6px', fontSize: '12px' }}
-                        onClick={() => handleApproveReject(company.id, 'reject')}
-                      >
-                        Reject
-                      </button>
+                      <div className="d-inline-flex gap-2">
+                        <button
+                          className="btn btn-sm btn-success px-3 py-1 fs-8"
+                          onClick={() => handleApproveReject(company.id, 'approve')}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger px-3 py-1 fs-8"
+                          style={{ borderRadius: '6px' }}
+                          onClick={() => handleApproveReject(company.id, 'reject')}
+                        >
+                          Reject
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

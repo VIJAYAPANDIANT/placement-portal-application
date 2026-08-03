@@ -1,157 +1,189 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
+import NotificationDrawer, { useNotificationCount } from '../../components/common/NotificationDrawer';
+import './student.css';
+
+const COMPANY_COLORS = ['#0F766E','#2563EB','#7C3AED','#D97706','#DC2626','#0891B2','#059669','#9333EA'];
+
+const STATUS_META = {
+  selected:    { label: 'SELECTED ✓', pillClass: 'sp-app-status--selected',    banner: 'sp-banner--selected',    icon: '🎉', msg: "Congratulations! You've been selected. Offer letter sent to your email." },
+  shortlisted: { label: 'SHORTLISTED', pillClass: 'sp-app-status--shortlisted', banner: 'sp-banner--shortlisted', icon: '⚡', msg: "You've been shortlisted! Check the Interviews tab for schedule details." },
+  applied:     { label: 'APPLIED',     pillClass: 'sp-app-status--applied',     banner: null,                     icon: null, msg: null },
+  rejected:    { label: 'REJECTED',    pillClass: 'sp-app-status--rejected',    banner: 'sp-banner--rejected',    icon: '❌', msg: 'Your application was not selected this time. Keep applying!' },
+};
 
 const MyApplications = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [exportAlert, setExportAlert] = useState(null);
-  const [exporting, setExporting] = useState(false);
+  const [filter, setFilter]             = useState('All');
+  const [loading, setLoading]           = useState(true);
+  const [time, setTime]                 = useState(new Date());
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { count: unreadCount, refresh: refreshCount } = useNotificationCount();
 
   useEffect(() => {
-    fetchApplications();
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
   }, []);
 
-  const fetchApplications = async () => {
+  useEffect(() => {
+    api.get('/student/applications')
+      .then(res => setApplications(res.data || []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+  const TABS = ['All', 'Selected', 'Shortlisted', 'Applied', 'Rejected'];
+
+  const counts = {
+    All: applications.length,
+    Selected: applications.filter(a => a.status === 'selected').length,
+    Shortlisted: applications.filter(a => a.status === 'shortlisted').length,
+    Applied: applications.filter(a => a.status === 'applied').length,
+    Rejected: applications.filter(a => a.status === 'rejected').length,
+  };
+
+  const filtered = filter === 'All'
+    ? applications
+    : applications.filter(a => a.status === filter.toLowerCase());
+
+  const exportCSV = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      const res = await api.get('/student/applications');
-      setApplications(res.data);
+      await api.post('/student/export-csv');
+      alert('Export started! The CSV report is being emailed to your registered address.');
     } catch (err) {
-      console.error('Error fetching student applications:', err);
-      setError(err.response?.data?.error || 'Failed to retrieve applications.');
-    } finally {
-      setLoading(false);
+      console.error('CSV Export error:', err);
+      alert('Failed to export CSV.');
     }
   };
-
-  const handleExportCSV = async () => {
-    try {
-      setExporting(true);
-      setExportAlert(null);
-      const res = await api.post('/student/export-csv');
-      setExportAlert({
-        type: 'success',
-        message: res.data.message || 'Export started, you will receive an email shortly'
-      });
-      setTimeout(() => setExportAlert(null), 4000);
-    } catch (err) {
-      console.error('Error exporting CSV:', err);
-      setExportAlert({
-        type: 'danger',
-        message: err.response?.data?.error || 'Failed to trigger CSV export.'
-      });
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'applied':
-        return <span className="status-pill pill-info">● Applied</span>;
-      case 'shortlisted':
-        return <span className="status-pill pill-purple">● Shortlisted</span>;
-      case 'selected':
-        return <span className="status-pill pill-success">● Selected</span>;
-      case 'rejected':
-        return <span className="status-pill pill-danger">● Rejected</span>;
-      default:
-        return <span className="status-pill pill-warning">● {status}</span>;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-5">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
-        <p className="mt-3 text-muted">Retrieving your application history...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="panel-card p-4 text-center border-danger">
-        <p className="text-danger mb-0">{error}</p>
-      </div>
-    );
-  }
 
   return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h4 className="fw-bold mb-1">My Application History</h4>
-          <p className="text-muted mb-0" style={{ fontSize: '13px' }}>View current status and export records for all submitted drive applications.</p>
-        </div>
-        {applications.length > 0 && (
+    <div className="sp-page">
+      {/* ── TOPBAR ── */}
+      <div className="sp-topbar">
+        <span className="sp-topbar__title">My Applications</span>
+        <div className="sp-topbar__right">
+          <span className="sp-live-badge"><span className="sp-live-dot" />LIVE</span>
+          <span className="sp-time-badge">{timeStr} IST</span>
+          <span className="sp-role-badge">STUDENT</span>
           <button
-            className="btn btn-outline-primary fw-bold btn-sm px-3 py-2"
-            style={{ borderRadius: '8px' }}
-            onClick={handleExportCSV}
-            disabled={exporting}
+            className="sp-topbar__bell"
+            title="Notifications"
+            onClick={() => setIsDrawerOpen(true)}
           >
-            {exporting ? '⏳ Starting Export...' : '📥 Export Applications CSV'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            {unreadCount > 0 && <span className="sp-topbar__bell-badge">{unreadCount}</span>}
           </button>
-        )}
+          <button className="sp-btn-ghost" onClick={() => { logout(); navigate('/login'); }}>Sign Out</button>
+          <button className="sp-btn-primary" onClick={exportCSV}>Export CSV</button>
+        </div>
       </div>
 
-      {exportAlert && (
-        <div className={`alert alert-${exportAlert.type} alert-dismissible fade show mb-4`} role="alert">
-          {exportAlert.message}
-          <button type="button" className="btn-close" onClick={() => setExportAlert(null)} aria-label="Close"></button>
-        </div>
-      )}
-
-      <div className="panel-card">
-        <div className="panel-header">
-          <h5 className="panel-title">Submitted Drive Applications</h5>
-          <span className="status-pill pill-info">📝 {applications.length} Total Applications</span>
+      <div className="sp-content">
+        <div className="sp-breadcrumb">
+          <Link to="/student">Home</Link>
+          <span className="sp-breadcrumb__sep">›</span>
+          <span>My Applications</span>
         </div>
 
-        {applications.length === 0 ? (
-          <div className="text-center py-5">
-            <div style={{ fontSize: '2.5rem' }}>📝</div>
-            <p className="mt-3 fw-semibold mb-1">No applications submitted yet</p>
-            <small className="text-muted d-block mb-4">Explore available campus drives and apply to start tracking your recruitment status.</small>
-            <Link to="/student/drives" className="btn btn-sm btn-primary fw-bold px-4" style={{ borderRadius: '6px' }}>
-              Explore Active Drives
-            </Link>
+        {/* Filter Tabs */}
+        <div className="sp-filter-tabs">
+          {TABS.map(tab => (
+            <button
+              key={tab}
+              className={`sp-filter-tab${filter === tab ? ' sp-filter-tab--active' : ''}`}
+              onClick={() => setFilter(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Summary counts */}
+        <div style={{ display:'flex', gap:'16px', marginBottom:'16px', fontSize:'13px', color:'#6B7280' }}>
+          <span><strong style={{ color:'#111827' }}>{counts.All} Applied</strong></span>
+          {counts.Shortlisted > 0 && <span><strong style={{ color:'#D97706' }}>{counts.Shortlisted} Shortlisted</strong></span>}
+          {counts.Selected    > 0 && <span><strong style={{ color:'#16A34A' }}>{counts.Selected} Selected</strong></span>}
+          {counts.Rejected    > 0 && <span><strong style={{ color:'#DC2626' }}>{counts.Rejected} Rejected</strong></span>}
+        </div>
+
+        {loading ? (
+          <div style={{ textAlign:'center', padding:'60px 0', color:'#9CA3AF' }}>
+            <div style={{ fontSize:'28px', marginBottom:'8px' }}>⏳</div>Loading…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'60px 0', color:'#9CA3AF' }}>
+            <div style={{ fontSize:'32px', marginBottom:'8px' }}>📭</div>
+            <div style={{ fontSize:'14px', fontWeight:600 }}>No applications</div>
+            <Link to="/student/drives" style={{ fontSize:'13px', color:'#0F766E', marginTop:'8px', display:'inline-block' }}>Browse Drives →</Link>
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="enhanced-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Company Name</th>
-                  <th>Job Title</th>
-                  <th>Package LPA</th>
-                  <th>Applied On</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((app, idx) => (
-                  <tr key={app.id}>
-                    <td className="text-muted fw-bold" style={{ fontSize: '11px' }}>{idx + 1}</td>
-                    <td className="fw-bold text-primary">{app.company_name}</td>
-                    <td className="fw-bold">{app.job_title}</td>
-                    <td><span className="status-pill pill-success">{app.package_lpa} LPA</span></td>
-                    <td>{app.applied_on || 'N/A'}</td>
-                    <td>{getStatusBadge(app.status)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div>
+            {filtered.map((app, i) => {
+              const meta  = STATUS_META[app.status] || STATUS_META.applied;
+              const color = COMPANY_COLORS[i % COMPANY_COLORS.length];
+
+              return (
+                <div className="sp-app-card" key={app.id}>
+                  <div className="sp-app-card__header">
+                    <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+                      <div className="sp-app-card__logo" style={{ background: color }}>
+                        {app.company_name?.charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:'10px', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.8px', color:'#6B7280', marginBottom:'2px' }}>
+                          {app.company_name}
+                        </div>
+                        <div style={{ fontSize:'15px', fontWeight:700, color:'#111827' }}>{app.job_title}</div>
+                        <div style={{ display:'flex', gap:'8px', marginTop:'4px', flexWrap:'wrap' }}>
+                          <span className="sp-tag sp-tag--pkg">₹{app.package_lpa} LPA</span>
+                          {app.applied_on && (
+                            <span className="sp-tag sp-tag--branch">
+                              Deadline: {new Date(app.applied_on).toLocaleDateString('en-IN', { day:'numeric', month:'short' })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:'8px' }}>
+                      <span className={`sp-app-status-pill ${meta.pillClass}`}>{meta.label}</span>
+                      {app.status === 'selected' && (
+                        <button className="sp-btn-primary" style={{ height:'28px', fontSize:'11px', padding:'0 10px' }}>
+                          View Offer
+                        </button>
+                      )}
+                      {(app.status === 'shortlisted') && (
+                        <Link to="/student/interviews" className="sp-btn-ghost" style={{ height:'28px', fontSize:'11px', padding:'0 10px', textDecoration:'none', display:'inline-flex', alignItems:'center' }}>
+                          Interview →
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                  {meta.banner && meta.msg && (
+                    <div className={`sp-app-card__banner ${meta.banner}`}>
+                      <span>{meta.icon}</span>
+                      <span>{meta.msg}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
+      <NotificationDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => { setIsDrawerOpen(false); refreshCount(); }}
+      />
     </div>
   );
 };

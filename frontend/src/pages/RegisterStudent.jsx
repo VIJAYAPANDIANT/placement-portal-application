@@ -176,16 +176,24 @@ const RegisterStudent = () => {
                   <div className="col-md-6">
                     <div className="mb-3">
                       <label htmlFor="branch" className="form-label">Branch / Department</label>
-                      <input
-                        type="text"
-                        className="form-control"
+                      <select
+                        className="form-select"
                         id="branch"
                         name="branch"
-                        placeholder="e.g. Computer Science"
                         value={formData.branch}
                         onChange={handleChange}
                         required
-                      />
+                      >
+                        <option value="">Select Department</option>
+                        <option value="Computer Science">Computer Science (CSE)</option>
+                        <option value="Information Technology">Information Technology (IT)</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence & Machine Learning (AIML)</option>
+                        <option value="Electronics & Communication">Electronics & Communication (ECE)</option>
+                        <option value="Electrical & Electronics">Electrical & Electronics (EEE)</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering (MECH)</option>
+                        <option value="Civil Engineering">Civil Engineering (CIVIL)</option>
+                        <option value="Data Science">Data Science (DS)</option>
+                      </select>
                     </div>
 
                     <div className="mb-3">
