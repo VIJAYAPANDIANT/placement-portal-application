@@ -4,10 +4,12 @@ A comprehensive full-stack application designed to streamline the campus placeme
 
 ## 🌟 Key Features & Rubric Compliance
 
-* **Student Portal**: Self-registration, PDF resume uploading, automated algorithm-based CGPA & Branch academic filtering, live application tracking, and asynchronous CSV report generation via Celery workers.
-* **Company Portal**: Recruiter registration, HR contact profile management, publishing high-impact placement drives, screening eligible applicants, and interview scheduling workflows.
-* **Admin (Placement Cell) Dashboard**: Programmatically pre-seeded superuser oversight, company and placement drive approval funnels, student blacklisting capabilities, and real-time dynamic visual analytics (Chart.js).
+* **Student Portal**: Self-registration with normalized department selection dropdowns, PDF resume uploading, automated algorithm-based CGPA & Branch academic filtering (using robust equivalent branch matching), live application tracking, and asynchronous CSV report generation via Celery workers.
+* **Company Portal**: Recruiter registration, dynamic company branding, publishing high-impact placement drives with multiple eligible branches, screening candidates with an interactive preview modal showing biography and linked professional profiles (**GitHub, LinkedIn, Portfolio**), and interview scheduling workflows.
+* **Admin (Placement Cell) Dashboard**: Programmatically pre-seeded superuser oversight, company and placement drive approval funnels, student directory access, and real-time dynamic visual analytics (Chart.js).
+* **Unified Notification System**: Real-time DB-backed notification drawer (bell button on topbar) dynamically routing system-wide and user-targeted notifications across all roles (Admin, Company, Student).
 * **Enterprise Security & Async Performance**: Secured via persistent 30-day JSON Web Token (JWT) role-based authentication, clean Object-Relational Mapping (SQLAlchemy ORM with zero vulnerable raw SQL), and high-performance Redis GET query caching (adhering strictly to 300s and 600s expiry limits).
+
 
 ## 🏗 Architecture
 
@@ -59,7 +61,7 @@ flowchart TB
 
 ## 🗄️ Database ERD (Entity-Relationship Diagram)
 
-The application implements a strict 5-table relational database architecture powered by **SQLAlchemy ORM**:
+The application implements a strict 6-table relational database architecture powered by **SQLAlchemy ORM**:
 
 ```mermaid
 erDiagram
@@ -104,6 +106,15 @@ erDiagram
         date interview_date
         string interview_mode
         string location_or_link
+    }
+    NOTIFICATION {
+        int id PK
+        string title
+        string message
+        string category
+        boolean is_read
+        string role
+        int user_id
     }
 ```
 
@@ -162,11 +173,20 @@ To process background tasks (like CSV exports or emails), start the Celery worke
 ```bash
 cd backend
 # Make sure your virtual env is activated
-celery -A app.celery_tasks worker --loglevel=info
+celery -A celery_worker.celery worker --loglevel=info -P solo
 ```
 *(Ensure your Redis server is running, as Celery relies on it as the message broker).*
 
-### 3. Frontend Setup
+### 3. Local SMTP Debug Server (Diagnostics & Offline Development)
+To capture and inspect email payloads locally without hitting real Google SMTP servers, start the zero-dependency local SMTP server:
+```bash
+cd backend
+python smtp_server.py
+```
+This starts a local mail capture server listening on `127.0.0.1:1025` which prints all email payloads to the terminal stdout.
+
+### 4. Frontend Setup
+
 
 Open a new terminal and navigate to the `frontend` directory:
 ```bash
