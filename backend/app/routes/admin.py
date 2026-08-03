@@ -67,6 +67,7 @@ def approve_company(company_id):
         db.session.commit()
         try:
             cache.delete('admin_stats')
+            cache.delete('approved_drives')
         except Exception:
             pass
     except Exception as e:
@@ -91,6 +92,11 @@ def deactivate_company(company_id):
 
     try:
         db.session.commit()
+        try:
+            cache.delete('admin_stats')
+            cache.delete('approved_drives')
+        except Exception:
+            pass
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': f'Database error: {str(e)}'}), 500
@@ -166,6 +172,7 @@ def approve_drive(drive_id):
         db.session.commit()
         try:
             cache.delete('admin_stats')
+            cache.delete('approved_drives')
         except Exception:
             pass
     except Exception as e:
