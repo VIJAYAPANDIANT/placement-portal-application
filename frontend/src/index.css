@@ -3,4 +3,34 @@
 body {
   background-color: #f8f9fa;
   min-height: 100vh;
+  overflow-x: hidden !important; /* Prevents global horizontal scroll bugs */
+  width: 100%;
+}
+
+/* --- GLOBAL LAYOUT FIXES & ALIGNMENT OVERRIDES --- */
+
+/* Ensure Main Content wrapper doesn't shrink under the sidebar or cause grid overflow */
+.main-content {
+  flex: 1;
+  min-width: 0; /* Allows flex children to shrink below their implied minimum */
+  overflow-x: hidden;
+  padding-bottom: 2rem;
+}
+
+/* Fix Bootstrap row negative margins causing accidental horizontal overflow */
+.row {
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Ensure all tables are responsive and don't break layout width */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Card layout text wrapping to prevent overlapping */
+.card {
+  max-width: 100%;
+  word-wrap: break-word;
 }
