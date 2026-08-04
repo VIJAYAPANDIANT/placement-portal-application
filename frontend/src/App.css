@@ -223,3 +223,13 @@ body {
   background: #cbd5e1;
   border-radius: 3px;
 }
+
+/* Hide number input spin buttons globally for cleaner UI */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
