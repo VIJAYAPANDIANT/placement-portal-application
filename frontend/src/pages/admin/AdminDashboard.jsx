@@ -98,7 +98,11 @@ const AdminDashboard = () => {
   const handleSignOut = () => { logout(); navigate('/login'); };
 
 
-  // ─── Chart Data ────────────────────────────────────────────────────────────
+  // ─── Chart Colors & Config ──────────────────────────────────────────────────
+  const isDark = theme === 'dark';
+  const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : '#F1F5F9';
+  const tickColor = isDark ? '#8B949E' : '#6B7280';
+
   const branchChartData = {
     labels: branchData.map(b => b.branch),
     datasets: [{
@@ -123,12 +127,12 @@ const AdminDashboard = () => {
       y: {
         beginAtZero: true,
         max: 100,
-        grid: { color: '#F1F5F9' },
-        ticks: { font: { size: 11 }, color: '#6B7280', callback: v => v + '%' },
+        grid: { color: gridColor },
+        ticks: { font: { size: 11 }, color: tickColor, callback: v => v + '%' },
       },
       x: {
         grid: { display: false },
-        ticks: { font: { size: 11 }, color: '#6B7280' },
+        ticks: { font: { size: 11 }, color: tickColor },
       },
     },
   };
@@ -164,12 +168,12 @@ const AdminDashboard = () => {
     scales: {
       y: {
         beginAtZero: true,
-        grid: { color: '#F1F5F9' },
-        ticks: { font: { size: 11 }, color: '#6B7280', precision: 0 },
+        grid: { color: gridColor },
+        ticks: { font: { size: 11 }, color: tickColor, precision: 0 },
       },
       x: {
         grid: { display: false },
-        ticks: { font: { size: 11 }, color: '#6B7280' },
+        ticks: { font: { size: 11 }, color: tickColor },
       },
     },
   };
