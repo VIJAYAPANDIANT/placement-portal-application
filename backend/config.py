@@ -31,8 +31,9 @@ class Config:
 
     # Flask-Mail config (Gmail SMTP by default. Set real credentials below or via environment variables)
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 465))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False').lower() == 'true'
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'True').lower() == 'true'
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'vigneshwaran7002@gmail.com') # Let's set it to user's email as default sender
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'lfwk jvmw ozok svkn')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'vigneshwaran7002@gmail.com')

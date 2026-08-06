@@ -94,6 +94,7 @@ function App() {
           {/* Company Routes */}
           <Route path="/company" element={<ProtectedRoute role="company"><CompanyDashboard /></ProtectedRoute>} />
           <Route path="/company/drives/create" element={<ProtectedRoute role="company"><CreateDrive /></ProtectedRoute>} />
+          <Route path="/company/drives/:id/edit" element={<ProtectedRoute role="company"><CreateDrive /></ProtectedRoute>} />
           <Route path="/company/drives" element={<ProtectedRoute role="company"><MyDrives /></ProtectedRoute>} />
           <Route path="/company/applicants" element={<ProtectedRoute role="company"><DriveApplicants /></ProtectedRoute>} />
           <Route path="/company/drives/:id/applicants" element={<ProtectedRoute role="company"><DriveApplicants /></ProtectedRoute>} />

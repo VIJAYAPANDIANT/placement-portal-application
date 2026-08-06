@@ -94,6 +94,130 @@ def get_company_drives():
         })
     return jsonify(result), 200
 
+@company_bp.route('/drives/<int:drive_id>', methods=['GET'])
+@role_required('company')
+def get_single_drive(drive_id):
+    approval_check = verify_approved_company()
+    if approval_check:
+        return approval_check
+
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive:
+        return jsonify({"error": "Placement drive not found"}), 404
+
+    if drive.company_id != int(get_jwt_identity()):
+        return jsonify({"error": "Access denied"}), 403
+
+    return jsonify({
+        "id": drive.id,
+        "job_title": drive.job_title,
+        "job_description": drive.job_description,
+        "status": drive.status,
+        "package_lpa": drive.package_lpa,
+        "application_deadline": drive.application_deadline.strftime("%Y-%m-%d") if drive.application_deadline else None,
+        "eligibility_cgpa": drive.eligibility_cgpa,
+        "eligible_branches": drive.get_branches()
+    }), 200
+
+@company_bp.route('/drives/<int:drive_id>', methods=['PUT'])
+@role_required('company')
+def edit_drive(drive_id):
+    approval_check = verify_approved_company()
+    if approval_check:
+        return approval_check
+
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive:
+        return jsonify({"error": "Placement drive not found"}), 404
+
+    if drive.company_id != int(get_jwt_identity()):
+        return jsonify({"error": "Access denied"}), 403
+
+    data = request.get_json() or {}
+    job_title = data.get('job_title')
+    job_description = data.get('job_description')
+    eligibility_cgpa = data.get('eligibility_cgpa')
+    eligible_branches = data.get('eligible_branches')
+    application_deadline_str = data.get('application_deadline')
+    package_lpa = data.get('package_lpa')
+
+    if not all([job_title, eligibility_cgpa, eligible_branches, application_deadline_str, package_lpa]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    try:
+        deadline_date = datetime.strptime(application_deadline_str, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD"}), 400
+
+    drive.job_title = job_title
+    drive.job_description = job_description
+    drive.eligibility_cgpa = float(eligibility_cgpa)
+    drive.package_lpa = float(package_lpa)
+    drive.application_deadline = deadline_date
+    drive.set_branches(eligible_branches)
+    
+    # Reset status to pending so admin reviews the edited drive
+    drive.status = 'pending'
+
+    # Notify admin
+    company = Company.query.get(int(get_jwt_identity()))
+    company_name = company.name if company else 'A company'
+    create_notification(
+        title='Drive Details Updated',
+        message=f'{company_name} updated details for drive: "{job_title}" — awaiting your review.',
+        category='drive_posted'
+    )
+
+    try:
+        db.session.commit()
+        try:
+            cache.delete('admin_stats')
+            cache.delete('approved_drives')
+        except Exception:
+            pass
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+
+    return jsonify({"message": "Placement drive details updated successfully, awaiting Admin approval"}), 200
+
+@company_bp.route('/drives/<int:drive_id>/close', methods=['PUT'])
+@role_required('company')
+def close_drive(drive_id):
+    approval_check = verify_approved_company()
+    if approval_check:
+        return approval_check
+
+    drive = PlacementDrive.query.get(drive_id)
+    if not drive:
+        return jsonify({"error": "Placement drive not found"}), 404
+
+    if drive.company_id != int(get_jwt_identity()):
+        return jsonify({"error": "Access denied"}), 403
+
+    drive.status = 'completed'
+
+    # Notify admin
+    create_notification(
+        title='Drive Completed/Closed',
+        message=f'Placement drive "{drive.job_title}" has been closed by the recruiter.',
+        category='info',
+        role='admin'
+    )
+
+    try:
+        db.session.commit()
+        try:
+            cache.delete('admin_stats')
+            cache.delete('approved_drives')
+        except Exception:
+            pass
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+
+    return jsonify({"message": "Placement drive has been closed successfully."}), 200
+
 @company_bp.route('/drives/<int:drive_id>/applicants', methods=['GET'])
 @role_required('company')
 def get_drive_applicants(drive_id):
@@ -153,16 +277,44 @@ def update_application_status(application_id):
     old_status = application.status
     application.status = new_status
 
+    student = Student.query.get(application.student_id)
+    company = Company.query.get(int(get_jwt_identity()))
+    student_name = student.name if student else 'A student'
+    company_name = company.name if company else 'A company'
+
+    # Notify student
+    if new_status == 'selected' and old_status != 'selected':
+        create_notification(
+            title='Application Selected! 🎉',
+            message=f'Congratulations! You have been selected for the position of "{drive.job_title}" at {company_name}.',
+            category='student_placed',
+            role='student',
+            user_id=application.student_id
+        )
+    elif new_status == 'shortlisted' and old_status != 'shortlisted':
+        create_notification(
+            title='Application Shortlisted!',
+            message=f'Your application for "{drive.job_title}" at {company_name} has been shortlisted.',
+            category='student_placed',
+            role='student',
+            user_id=application.student_id
+        )
+    elif new_status == 'rejected' and old_status != 'rejected':
+        create_notification(
+            title='Application Status Update',
+            message=f'Your application for "{drive.job_title}" at {company_name} has been processed.',
+            category='drive_rejected',
+            role='student',
+            user_id=application.student_id
+        )
+
     # Notify admin when a student is placed
     if new_status == 'selected' and old_status != 'selected':
-        student = Student.query.get(application.student_id)
-        company = Company.query.get(int(get_jwt_identity()))
-        student_name = student.name if student else 'A student'
-        company_name = company.name if company else 'A company'
         create_notification(
             title='Student Placed!',
             message=f'{student_name} was selected by {company_name} for "{drive.job_title}".',
-            category='student_placed'
+            category='student_placed',
+            role='admin'
         )
 
     db.session.commit()
@@ -213,6 +365,23 @@ def schedule_interview(drive_id):
     )
 
     db.session.add(schedule)
+
+    # Notify all non-rejected applicants about the scheduled interview
+    try:
+        company = Company.query.get(int(get_jwt_identity()))
+        company_name = company.name if company else 'Company'
+        applications = Application.query.filter_by(drive_id=drive_id).filter(Application.status != 'rejected').all()
+        for app in applications:
+            create_notification(
+                title='Interview Scheduled!',
+                message=f'An interview has been scheduled for "{drive.job_title}" at {company_name} on {interview_date_str} ({interview_mode}). Check details in My Interviews.',
+                category='info',
+                role='student',
+                user_id=app.student_id
+            )
+    except Exception:
+        pass
+
     db.session.commit()
 
     return jsonify({"message": "Interview scheduled successfully"}), 201

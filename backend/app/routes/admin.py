@@ -52,7 +52,9 @@ def approve_company(company_id):
         create_notification(
             title='Company Approved',
             message=f'{company.name} has been approved and is now active on the portal.',
-            category='company_approved'
+            category='company_approved',
+            role='company',
+            user_id=company.id
         )
     else:
         company.approval_status = 'rejected'
@@ -60,7 +62,9 @@ def approve_company(company_id):
         create_notification(
             title='Company Rejected',
             message=f'{company.name} registration was rejected.',
-            category='company_rejected'
+            category='company_rejected',
+            role='company',
+            user_id=company.id
         )
 
     try:
@@ -154,18 +158,90 @@ def approve_drive(drive_id):
     if action == 'approve':
         drive.status = 'approved'
         message = 'Placement drive approved successfully'
+        
+        # 1. Notify company
+        create_notification(
+            title='Drive Approved',
+            message=f'Your placement drive for "{drive.job_title}" has been approved and is now live.',
+            category='drive_approved',
+            role='company',
+            user_id=drive.company_id
+        )
+        
+        # 2. Notify admin (system log notification)
         create_notification(
             title='Drive Approved',
             message=f'{company_name} — "{drive.job_title}" drive is now live for students.',
-            category='drive_approved'
+            category='drive_approved',
+            role='admin'
         )
+
+        # 3. Notify eligible students
+        try:
+            students = Student.query.filter(Student.cgpa >= drive.eligibility_cgpa, Student.is_blacklisted == False).all()
+            eligible_branches = drive.get_branches()
+            
+            def get_equivalent_branches(br):
+                if not br:
+                    return []
+                mapping = {
+                    'cse': ['computer science', 'cse', 'computer science (cse)'],
+                    'computer science': ['computer science', 'cse', 'computer science (cse)'],
+                    'it': ['information technology', 'it', 'information technology (it)'],
+                    'information technology': ['information technology', 'it', 'information technology (it)'],
+                    'aiml': ['artificial intelligence', 'aiml', 'artificial intelligence & machine learning (aiml)', 'artificial intelligence & machine learning'],
+                    'artificial intelligence': ['artificial intelligence', 'aiml', 'artificial intelligence & machine learning (aiml)', 'artificial intelligence & machine learning'],
+                    'ece': ['electronics & communication', 'ece', 'electronics & communication (ece)'],
+                    'electronics & communication': ['electronics & communication', 'ece', 'electronics & communication (ece)'],
+                    'eee': ['electrical & electronics', 'eee', 'electrical & electronics (eee)'],
+                    'electrical & electronics': ['electrical & electronics', 'eee', 'electrical & electronics (eee)'],
+                    'mech': ['mechanical engineering', 'mechanical', 'mechanical engineering (mech)', 'mech'],
+                    'mechanical': ['mechanical engineering', 'mechanical', 'mechanical engineering (mech)', 'mech'],
+                    'mechanical engineering': ['mechanical engineering', 'mechanical', 'mechanical engineering (mech)', 'mech'],
+                    'civil': ['civil engineering', 'civil', 'civil engineering (civil)', 'civil'],
+                    'civil engineering': ['civil engineering', 'civil', 'civil engineering (civil)', 'civil'],
+                    'ds': ['data science', 'ds', 'data science (ds)'],
+                    'data science': ['data science', 'ds', 'data science (ds)']
+                }
+                return mapping.get(br.lower().strip(), [br.lower().strip()])
+
+            for s in students:
+                student_equivs = get_equivalent_branches(s.branch)
+                is_eligible = False
+                for b in eligible_branches:
+                    b_equivs = get_equivalent_branches(b)
+                    if any(eq in student_equivs for eq in b_equivs) or b.lower().strip() == s.branch.lower().strip():
+                        is_eligible = True
+                        break
+                if is_eligible:
+                    create_notification(
+                        title='New Placement Drive Live',
+                        message=f'New job opening: "{drive.job_title}" at {company_name} (₹{drive.package_lpa} LPA) matches your profile. Apply now!',
+                        category='drive_approved',
+                        role='student',
+                        user_id=s.id
+                    )
+        except Exception:
+            pass
     else:
         drive.status = 'rejected'
         message = 'Placement drive rejected successfully'
+        
+        # 1. Notify company
+        create_notification(
+            title='Drive Rejected',
+            message=f'Your placement drive for "{drive.job_title}" was rejected by the placement cell.',
+            category='drive_rejected',
+            role='company',
+            user_id=drive.company_id
+        )
+        
+        # 2. Notify admin
         create_notification(
             title='Drive Rejected',
             message=f'{company_name} — "{drive.job_title}" drive was rejected.',
-            category='drive_rejected'
+            category='drive_rejected',
+            role='admin'
         )
 
     try:
@@ -194,6 +270,15 @@ def blacklist_student(student_id):
         return jsonify({'message': 'Student not found'}), 404
 
     student.is_blacklisted = not student.is_blacklisted
+    
+    status_text = 'blacklisted' if student.is_blacklisted else 'whitelisted'
+    create_notification(
+        title='Account Status Updated',
+        message=f'Your placement portal account has been {status_text} by the administrator.',
+        category='student_blacklisted' if student.is_blacklisted else 'info',
+        role='student',
+        user_id=student.id
+    )
 
     try:
         db.session.commit()
@@ -323,9 +408,102 @@ def get_all_students():
             'branch': student.branch,
             'cgpa': student.cgpa,
             'is_blacklisted': student.is_blacklisted,
-            'is_active': student.is_active
+            'is_active': student.is_active,
+            'last_active_at': student.last_active_at.isoformat() if student.last_active_at else None
         })
     return jsonify(response_data), 200
+
+
+@admin_bp.route('/companies', methods=['GET'])
+@role_required('admin')
+def get_all_companies():
+    """
+    GET /companies
+    Returns all Company records from the database.
+    """
+    companies = Company.query.all()
+    response_data = []
+    for company in companies:
+        response_data.append({
+            'id': company.id,
+            'name': company.name,
+            'email': company.email,
+            'hr_contact': company.hr_contact,
+            'website': company.website,
+            'industry': company.industry,
+            'approval_status': company.approval_status,
+            'is_active': company.is_active,
+            'last_active_at': company.last_active_at.isoformat() if company.last_active_at else None
+        })
+    return jsonify(response_data), 200
+
+
+@admin_bp.route('/students/<int:student_id>', methods=['DELETE'])
+@role_required('admin')
+def delete_student(student_id):
+    """
+    DELETE /students/<int:student_id>
+    Deletes the student account, notification routing, and application records.
+    """
+    student = db.session.get(Student, student_id)
+    if not student:
+        return jsonify({'message': 'Student not found'}), 404
+
+    try:
+        # Delete related applications
+        Application.query.filter_by(student_id=student_id).delete()
+        # Delete notification logs targeted specifically to this student
+        Notification.query.filter_by(role='student', user_id=student_id).delete()
+        
+        db.session.delete(student)
+        db.session.commit()
+        try:
+            cache.delete('admin_stats')
+        except Exception:
+            pass
+        return jsonify({'message': 'Student account and placement records permanently removed.'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Failed to delete student: {str(e)}'}), 500
+
+
+@admin_bp.route('/companies/<int:company_id>', methods=['DELETE'])
+@role_required('admin')
+def delete_company(company_id):
+    """
+    DELETE /companies/<int:company_id>
+    Deletes the company account, related drives, applications, interviews, and notification routing.
+    """
+    company = db.session.get(Company, company_id)
+    if not company:
+        return jsonify({'message': 'Company not found'}), 404
+
+    try:
+        # Fetch drives for this company to clean up dependent child records
+        drives = PlacementDrive.query.filter_by(company_id=company_id).all()
+        for drive in drives:
+            # Delete interview schedules
+            from app.models.interview import InterviewSchedule
+            InterviewSchedule.query.filter_by(drive_id=drive.id).delete()
+            # Delete applications
+            Application.query.filter_by(drive_id=drive.id).delete()
+            # Delete drive
+            db.session.delete(drive)
+
+        # Delete notification logs targeted specifically to this company
+        Notification.query.filter_by(role='company', user_id=company_id).delete()
+
+        db.session.delete(company)
+        db.session.commit()
+        try:
+            cache.delete('admin_stats')
+            cache.delete('approved_drives')
+        except Exception:
+            pass
+        return jsonify({'message': 'Company account and all related placement drives permanently removed.'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Failed to delete company: {str(e)}'}), 500
 
 
 @admin_bp.route('/dashboard/extended-stats', methods=['GET'])

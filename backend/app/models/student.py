@@ -45,10 +45,13 @@ class Student(db.Model):
     # Flag indicating if the student is blacklisted from drives. Defaults to False.
     is_blacklisted = db.Column(db.Boolean, default=False, nullable=False)
     
+    # Timestamp of the student's last active request or login.
+    last_active_at = db.Column(db.DateTime, nullable=True)
+    
     # Establishes a one-to-many relationship with Application.
     applications = db.relationship('Application', backref='student', lazy=True)
 
-    def __init__(self, name, email, password_hash, roll_number, branch, cgpa, graduation_year, resume_url=None, linkedin_url=None, github_url=None, portfolio_url=None, skills=None, bio=None, is_active=True, is_blacklisted=False):
+    def __init__(self, name, email, password_hash, roll_number, branch, cgpa, graduation_year, resume_url=None, linkedin_url=None, github_url=None, portfolio_url=None, skills=None, bio=None, is_active=True, is_blacklisted=False, last_active_at=None):
         self.name = name
         self.email = email
         self.password_hash = password_hash
@@ -64,6 +67,7 @@ class Student(db.Model):
         self.bio = bio
         self.is_active = is_active
         self.is_blacklisted = is_blacklisted
+        self.last_active_at = last_active_at
 
     def get_skills(self):
         if not self.skills:

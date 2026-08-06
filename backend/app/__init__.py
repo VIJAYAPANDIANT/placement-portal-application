@@ -70,6 +70,36 @@ def create_app(config_class='config.Config'):
     jwt.init_app(app)
     mail.init_app(app)
     cache.init_app(app)
+
+    @app.before_request
+    def update_last_active():
+        from flask_jwt_extended import verify_jwt_in_request, get_jwt
+        from datetime import datetime
+        try:
+            verify_jwt_in_request(optional=True)
+            claims = get_jwt()
+            if claims:
+                role = claims.get('role')
+                user_id = claims.get('id')
+                if role and user_id:
+                    from app.models.student import Student
+                    from app.models.company import Company
+                    if role == 'student':
+                        student = db.session.get(Student, user_id)
+                        if student:
+                            now = datetime.utcnow()
+                            if not student.last_active_at or (now - student.last_active_at).total_seconds() > 300:
+                                student.last_active_at = now
+                                db.session.commit()
+                    elif role == 'company':
+                        company = db.session.get(Company, user_id)
+                        if company:
+                            now = datetime.utcnow()
+                            if not company.last_active_at or (now - company.last_active_at).total_seconds() > 300:
+                                company.last_active_at = now
+                                db.session.commit()
+        except Exception:
+            pass
     
     celery = make_celery(app)
     app.celery = celery
@@ -104,13 +134,22 @@ def create_app(config_class='config.Config'):
         from app import models
         # Safely migrate notifications table in development if columns are missing
         try:
-            from sqlalchemy import inspect
+            from sqlalchemy import inspect, text
             inspector = inspect(db.engine)
             if 'notifications' in inspector.get_table_names():
                 columns = [col['name'] for col in inspector.get_columns('notifications')]
                 if 'user_id' not in columns:
                     print("Migrating notifications table...")
                     db.metadata.drop_all(bind=db.engine, tables=[models.Notification.__table__])
+            
+            # Dynamic migration for last_active_at column in student and company tables
+            for table_name in ['student', 'company']:
+                if table_name in inspector.get_table_names():
+                    columns = [col['name'] for col in inspector.get_columns(table_name)]
+                    if 'last_active_at' not in columns:
+                        print(f"Migrating {table_name} table to add last_active_at column...")
+                        db.session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN last_active_at DATETIME"))
+                        db.session.commit()
         except Exception as e:
             print("Migration warning:", e)
 

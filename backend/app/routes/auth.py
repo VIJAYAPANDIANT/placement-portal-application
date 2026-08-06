@@ -60,6 +60,15 @@ def login():
     if not role or not user:
         return jsonify({'message': 'Invalid credentials'}), 401
         
+    # Update last active timestamp
+    from datetime import datetime
+    try:
+        if role in ['student', 'company']:
+            user.last_active_at = datetime.utcnow()
+            db.session.commit()
+    except Exception as e:
+        print("Failed to update last_active_at during login:", e)
+        
     # 6. Generate JWT access token with user details (id, role, email) embedded in the payload claims
     access_token = create_access_token(
         identity=str(user.id),

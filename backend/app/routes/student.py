@@ -10,6 +10,7 @@ from app.models.drive import PlacementDrive
 from app.models.application import Application
 from app.models.student import Student
 from app.models.interview import InterviewSchedule
+from app.models.notification import create_notification
 from app.utils.decorators import role_required
 from app.tasks.celery_tasks import export_student_applications_csv
 
@@ -114,6 +115,37 @@ def apply_to_drive(drive_id):
         status='applied'
     )
     db.session.add(application)
+
+    # 1. Fetch company details
+    company = Company.query.get(drive.company_id)
+    company_name = company.name if company else "Company"
+
+    # 2. Notify student
+    create_notification(
+        title='Application Submitted',
+        message=f'You have successfully applied for "{drive.job_title}" at {company_name}.',
+        category='info',
+        role='student',
+        user_id=student.id
+    )
+
+    # 3. Notify company
+    create_notification(
+        title='New Candidate Application',
+        message=f'New applicant: {student.name} ({student.branch}, CGPA: {student.cgpa}) has applied to your "{drive.job_title}" drive.',
+        category='drive_posted',
+        role='company',
+        user_id=drive.company_id
+    )
+
+    # 4. Notify admin
+    create_notification(
+        title='New Drive Application',
+        message=f'{student.name} applied to "{drive.job_title}" by {company_name}.',
+        category='info',
+        role='admin'
+    )
+
     db.session.commit()
 
     return jsonify({"message": "Application submitted successfully"}), 201

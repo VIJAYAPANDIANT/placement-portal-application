@@ -9,6 +9,29 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const [counts, setCounts] = useState({ pendingCompanies: 0, pendingDrives: 0 });
   const [companyDetails, setCompanyDetails] = useState({ name: 'PhonePe HR', domain: 'PhonePe · Fintech', initials: 'PP' });
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    window.dispatchEvent(new Event('themechange'));
+  }, [theme]);
+
+  // Synchronize theme with changes made in other parts of the app
+  useEffect(() => {
+    const handleThemeChange = () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      if (currentTheme !== theme) {
+        setTheme(currentTheme);
+      }
+    };
+    window.addEventListener('themechange', handleThemeChange);
+    return () => window.removeEventListener('themechange', handleThemeChange);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   // Decode JWT to get email for dynamic company name if available
   useEffect(() => {
@@ -67,29 +90,50 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className="saas-sidebar d-flex flex-column" style={{ background: '#ffffff', borderRight: '1px solid #E5E7EB', width: '220px', minWidth: '220px' }}>
+    <aside className="saas-sidebar d-flex flex-column" style={{ background: 'var(--sidebar-bg)', borderRight: '1px solid var(--sidebar-border)', width: '220px', minWidth: '220px' }}>
       
       {/* ── Brand / Logo ── */}
-      <div className="d-flex align-items-center gap-2 px-3" style={{ height: '56px', borderBottom: '1px solid #E5E7EB', flexShrink: 0 }}>
-        <div
+      <div className="d-flex align-items-center justify-content-between px-3" style={{ height: '56px', borderBottom: '1px solid var(--sidebar-border)', flexShrink: 0 }}>
+        <div className="d-flex align-items-center gap-2" style={{ overflow: 'hidden' }}>
+          <div
+            style={{
+              width: '32px', height: '32px',
+              background: '#0F766E',
+              borderRadius: '6px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 800, fontSize: '15px', color: '#fff', flexShrink: 0,
+            }}
+          >
+            P
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--bs-body-color)', lineHeight: 1.1 }}>
+              PlaceLink
+            </div>
+            <div style={{ fontSize: '9px', color: 'var(--sidebar-text)', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>
+              {role === 'admin' ? 'v1.0 - ADMIN' : role === 'company' ? 'v1.0 - COMPANY' : 'v1.0 - STUDENT'}
+            </div>
+          </div>
+        </div>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
           style={{
-            width: '32px', height: '32px',
-            background: '#0F766E',
+            background: 'none',
+            border: 'none',
+            padding: '4px',
+            cursor: 'pointer',
+            fontSize: '15px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             borderRadius: '6px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 800, fontSize: '15px', color: '#fff', flexShrink: 0,
           }}
+          title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
-          P
-        </div>
-        <div>
-          <div style={{ fontSize: '14px', fontWeight: 800, color: '#111827', lineHeight: 1.1 }}>
-            PlaceLink
-          </div>
-          <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: 700, letterSpacing: '0.5px', marginTop: '2px' }}>
-            {role === 'admin' ? 'v1.0 - ADMIN' : role === 'company' ? 'v1.0 - COMPANY' : 'v1.0 - STUDENT'}
-          </div>
-        </div>
+          {theme === 'light' ? '🌙' : '☀️'}
+        </button>
       </div>
 
       {/* ── Navigation ── */}
@@ -183,7 +227,7 @@ const Sidebar = () => {
 
       {/* ── Footer Recruiter / Admin Section ── */}
       {role === 'company' && (
-        <div style={{ padding: '14px 16px', borderTop: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyBetween: 'space-between', gap: '8px' }}>
+        <div style={{ padding: '14px 16px', borderTop: '1px solid var(--sidebar-border)', display: 'flex', alignItems: 'center', justifyBetween: 'space-between', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', flex: 1 }}>
             <div
               style={{
@@ -197,10 +241,10 @@ const Sidebar = () => {
               {companyDetails.initials}
             </div>
             <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--bs-body-color)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                 {companyDetails.name}
               </div>
-              <div style={{ fontSize: '10px', color: '#6B7280', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              <div style={{ fontSize: '10px', color: 'var(--muted)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                 {companyDetails.domain}
               </div>
             </div>
@@ -210,7 +254,7 @@ const Sidebar = () => {
       )}
 
       {role === 'admin' && (
-        <div style={{ padding: '14px 16px', borderTop: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ padding: '14px 16px', borderTop: '1px solid var(--sidebar-border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22C55E', flexShrink: 0 }}></div>
           <button
             onClick={() => { logout(); navigate('/login'); }}

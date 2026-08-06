@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import NotificationDrawer, { useNotificationCount } from '../../components/common/NotificationDrawer';
@@ -8,6 +8,9 @@ import './company.css';
 const CreateDrive = () => {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const initialFormState = {
     job_title: '',
     job_description: '',
@@ -33,6 +36,39 @@ const CreateDrive = () => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useEffect(() => {
+    if (isEditMode) {
+      fetchDriveDetails();
+    }
+  }, [id]);
+
+  const fetchDriveDetails = async () => {
+    try {
+      setLoading(true);
+      setErrorMessage(null);
+      const res = await api.get(`/company/drives/${id}`);
+      const drive = res.data;
+      if (drive) {
+        setFormData({
+          job_title: drive.job_title || '',
+          job_description: drive.job_description || '',
+          package_lpa: drive.package_lpa?.toString() || '',
+          employment_type: drive.employment_type || 'Full-time',
+          eligibility_cgpa: drive.eligibility_cgpa?.toString() || '7.5',
+          graduation_year: drive.graduation_year?.toString() || '2025',
+          eligible_branches: drive.eligible_branches || [],
+          application_deadline: drive.application_deadline || '',
+          interview_mode: drive.interview_mode || 'Online',
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching drive details:', err);
+      setErrorMessage(err.response?.data?.error || 'Failed to load drive details.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const availableBranches = [
     'Computer Science',
@@ -90,17 +126,22 @@ const CreateDrive = () => {
         application_deadline: formData.application_deadline,
       };
 
-      const res = await api.post('/company/drives', payload);
+      let res;
+      if (isEditMode) {
+        res = await api.put(`/company/drives/${id}`, payload);
+      } else {
+        res = await api.post('/company/drives', payload);
+      }
 
-      if (res.status === 201) {
-        setSuccessMessage('Drive submitted for Admin approval! Redirecting to drives dashboard...');
+      if (res.status === 200 || res.status === 201) {
+        setSuccessMessage(isEditMode ? 'Drive details updated successfully! Redirecting...' : 'Drive submitted for Admin approval! Redirecting to drives dashboard...');
         setTimeout(() => {
           navigate('/company/drives');
         }, 1500);
       }
     } catch (err) {
-      console.error('Error creating drive:', err);
-      setErrorMessage(err.response?.data?.error || 'Failed to submit drive request.');
+      console.error('Error saving drive:', err);
+      setErrorMessage(err.response?.data?.error || 'Failed to save drive.');
     } finally {
       setLoading(false);
     }
@@ -112,7 +153,7 @@ const CreateDrive = () => {
     <div className="cp-page">
       {/* ── TOPBAR ── */}
       <div className="cp-topbar">
-        <span className="cp-topbar__title">Post New Drive</span>
+        <span className="cp-topbar__title">{isEditMode ? 'Edit Placement Drive' : 'Post New Drive'}</span>
         <div className="cp-topbar__right">
           <span className="cp-live-badge"><span className="cp-live-dot" />LIVE</span>
           <span className="cp-time-badge">{timeStr} IST</span>
@@ -134,13 +175,15 @@ const CreateDrive = () => {
         <div className="cp-breadcrumb">
           <Link to="/company">Home</Link>
           <span className="cp-breadcrumb__sep">›</span>
-          <span>Post New Drive</span>
+          <Link to="/company/drives">My Drives</Link>
+          <span className="cp-breadcrumb__sep">›</span>
+          <span>{isEditMode ? 'Edit Drive' : 'Post New Drive'}</span>
         </div>
 
         {/* Info Banner */}
         <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', color: '#1E40AF', display: 'flex', gap: '8px', marginBottom: '20px' }}>
           <span>💡</span>
-          <span>Your drive will be reviewed by the Placement Cell and typically approved within 24 hours.</span>
+          <span>Your drive details will be reviewed by the Placement Cell and typically approved within 24 hours.</span>
         </div>
 
         {successMessage && (
@@ -360,7 +403,7 @@ const CreateDrive = () => {
               style={{ flex: 1, height: '40px', fontSize: '14px' }}
               disabled={loading}
             >
-              {loading ? 'Submitting...' : 'Submit Drive for Approval →'}
+              {loading ? 'Submitting...' : isEditMode ? 'Update Drive Details →' : 'Submit Drive for Approval →'}
             </button>
             <button
               type="button"
@@ -368,7 +411,7 @@ const CreateDrive = () => {
               style={{ width: '140px', height: '40px', fontSize: '14px' }}
               onClick={() => navigate('/company/drives')}
             >
-              Save Draft
+              Cancel
             </button>
           </div>
         </form>

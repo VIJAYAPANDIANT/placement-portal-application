@@ -39,6 +39,19 @@ const MyDrives = () => {
     }
   };
 
+  const handleCloseDrive = async (id, jobTitle) => {
+    if (window.confirm(`Are you sure you want to close the placement drive for "${jobTitle}"? This will set its status to completed and prevent further applications.`)) {
+      try {
+        setError(null);
+        await api.put(`/company/drives/${id}/close`);
+        fetchCompanyDrives();
+      } catch (err) {
+        console.error('Error closing drive:', err);
+        setError(err.response?.data?.error || 'Failed to close placement drive.');
+      }
+    }
+  };
+
   const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const liveCount = drives.filter((d) => d.status === 'approved').length;
   const pendingCount = drives.filter((d) => d.status === 'pending').length;
@@ -144,11 +157,19 @@ const MyDrives = () => {
                       >
                         Applicants
                       </button>
-                      <button className="cp-btn-ghost" style={{ fontSize: '12px', height: '28px', padding: '0 12px' }}>
+                      <button
+                        className="cp-btn-ghost"
+                        style={{ fontSize: '12px', height: '28px', padding: '0 12px' }}
+                        onClick={() => navigate(`/company/drives/${drive.id}/edit`)}
+                      >
                         Edit
                       </button>
                       {isLive && (
-                        <button className="cp-btn-ghost" style={{ fontSize: '12px', height: '28px', padding: '0 12px', border: '1px solid #FEE2E2', color: '#DC2626' }}>
+                        <button
+                          className="cp-btn-ghost"
+                          style={{ fontSize: '12px', height: '28px', padding: '0 12px', border: '1px solid #FEE2E2', color: '#DC2626' }}
+                          onClick={() => handleCloseDrive(drive.id, drive.job_title)}
+                        >
                           Close
                         </button>
                       )}

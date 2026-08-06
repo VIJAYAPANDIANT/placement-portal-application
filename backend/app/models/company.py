@@ -34,12 +34,15 @@ class Company(db.Model):
     # Flag indicating if the company's account is currently active. Defaults to True.
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     
+    # Timestamp of the company's last active request or login.
+    last_active_at = db.Column(db.DateTime, nullable=True)
+    
     # Establishes a one-to-many relationship with PlacementDrive.
     # - backref='company' allows a PlacementDrive instance to reference its Company as drive.company.
     # - lazy=True means related drives are loaded from the database only when accessed.
     drives = db.relationship('PlacementDrive', backref='company', lazy=True)
 
-    def __init__(self, name, email, password_hash, hr_contact=None, website=None, industry=None, description=None, approval_status='pending', is_active=True):
+    def __init__(self, name, email, password_hash, hr_contact=None, website=None, industry=None, description=None, approval_status='pending', is_active=True, last_active_at=None):
         self.name = name
         self.email = email
         self.password_hash = password_hash
@@ -49,6 +52,7 @@ class Company(db.Model):
         self.description = description
         self.approval_status = approval_status
         self.is_active = is_active
+        self.last_active_at = last_active_at
 
     def __repr__(self):
         return f'<Company {self.name}>'

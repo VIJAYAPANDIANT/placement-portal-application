@@ -44,6 +44,24 @@ const AdminDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { count: unreadCount, refresh: refreshCount } = useNotificationCount();
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+
+  // Listen to external theme changes (like sidebar toggles)
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setTheme(localStorage.getItem('theme') || 'light');
+    };
+    window.addEventListener('themechange', handleThemeChange);
+    return () => window.removeEventListener('themechange', handleThemeChange);
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    window.dispatchEvent(new Event('themechange'));
+  };
 
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -219,7 +237,9 @@ const AdminDashboard = () => {
             )}
           </button>
 
-          <button className="admin-topbar__theme-btn">☀ Light</button>
+          <button className="admin-topbar__theme-btn" onClick={toggleTheme}>
+            {theme === 'light' ? '☀ Light' : '🌙 Dark'}
+          </button>
         </div>
       </div>
 

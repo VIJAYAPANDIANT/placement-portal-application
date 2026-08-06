@@ -3,6 +3,7 @@ import api from '../../utils/api';
 import StatusBadge from '../../components/common/StatusBadge';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import EmptyState from '../../components/common/EmptyState';
+import './admin.css';
 
 const StudentList = () => {
   const [students, setStudents] = useState([]);
@@ -47,6 +48,55 @@ const StudentList = () => {
       console.error('Error blacklisting student:', err);
       setAlert({ type: 'danger', message: 'Failed to update student blacklist status.' });
     }
+  };
+
+  const handleDeleteStudent = async (id, name) => {
+    if (window.confirm(`Are you absolutely sure you want to permanently delete the student account for "${name}"? This will remove all their placement drive applications and cannot be undone.`)) {
+      try {
+        setAlert(null);
+        await api.delete(`/admin/students/${id}`);
+        setStudents((prev) => prev.filter((s) => s.id !== id));
+        setAlert({
+          type: 'success',
+          message: `Student account for "${name}" has been permanently deleted.`,
+        });
+        setTimeout(() => setAlert(null), 3000);
+      } catch (err) {
+        console.error('Error deleting student:', err);
+        setAlert({
+          type: 'danger',
+          message: err.response?.data?.message || 'Failed to delete student account.',
+        });
+      }
+    }
+  };
+
+  const getLastActiveBadge = (lastActiveStr) => {
+    if (!lastActiveStr) return <span className="text-muted fs-8">Never</span>;
+    const lastActiveDate = new Date(lastActiveStr);
+    const diffMs = new Date() - lastActiveDate;
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffSecs < 60) {
+      return <span className="text-success fw-bold fs-8" title={lastActiveDate.toLocaleString()}>Just now</span>;
+    }
+    if (diffMins < 60) {
+      return <span className="text-success fw-bold fs-8" title={lastActiveDate.toLocaleString()}>{diffMins}m ago</span>;
+    }
+    if (diffHours < 24) {
+      return <span className="text-dark fs-8" title={lastActiveDate.toLocaleString()}>{diffHours}h ago</span>;
+    }
+    if (diffDays < 30) {
+      return <span className="text-dark fs-8" title={lastActiveDate.toLocaleString()}>{diffDays}d ago</span>;
+    }
+    return (
+      <span className="badge bg-danger-subtle text-danger fw-semibold" title={lastActiveDate.toLocaleString()}>
+        Inactive ({diffDays}d)
+      </span>
+    );
   };
 
   const filteredStudents = students.filter((s) => {
@@ -136,8 +186,9 @@ const StudentList = () => {
                   <th>Roll Number</th>
                   <th>Branch</th>
                   <th>CGPA</th>
+                  <th>Last Active</th>
                   <th>Status</th>
-                  <th className="text-end">Blacklist Control</th>
+                  <th className="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -152,6 +203,7 @@ const StudentList = () => {
                       <span className="badge bg-primary-subtle text-primary fw-semibold">{s.branch}</span>
                     </td>
                     <td><span className="fw-extrabold text-dark">{s.cgpa}</span></td>
+                    <td>{getLastActiveBadge(s.last_active_at)}</td>
                     <td>
                       {s.is_blacklisted ? (
                         <StatusBadge status="rejected" />
@@ -160,15 +212,25 @@ const StudentList = () => {
                       )}
                     </td>
                     <td className="text-end">
-                      <button
-                        className={`btn btn-sm px-3 py-1 fs-8 ${
-                          s.is_blacklisted ? 'btn-success' : 'btn-outline-danger'
-                        }`}
-                        style={{ borderRadius: '6px' }}
-                        onClick={() => handleToggleBlacklist(s.id)}
-                      >
-                        {s.is_blacklisted ? 'Reinstate Access' : 'Blacklist Student'}
-                      </button>
+                      <div className="d-inline-flex gap-2">
+                        <button
+                          className={`btn btn-sm px-3 py-1 fs-8 ${
+                            s.is_blacklisted ? 'btn-success' : 'btn-outline-danger'
+                          }`}
+                          style={{ borderRadius: '6px' }}
+                          onClick={() => handleToggleBlacklist(s.id)}
+                        >
+                          {s.is_blacklisted ? 'Reinstate' : 'Blacklist'}
+                        </button>
+                        <button
+                          className="btn btn-sm btn-outline-danger px-2 py-1 fs-8"
+                          style={{ borderRadius: '6px', border: '1px solid #fee2e2' }}
+                          onClick={() => handleDeleteStudent(s.id, s.name)}
+                          title="Delete Student Permanently"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
