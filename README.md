@@ -5,6 +5,7 @@ A comprehensive full-stack application designed to streamline the campus placeme
 ## 🌟 Key Features & Rubric Compliance
 
 * **Student Portal**: Self-registration with normalized department selection dropdowns, PDF resume uploading, automated algorithm-based CGPA & Branch academic filtering (using robust equivalent branch matching), live application tracking, and asynchronous CSV report generation via Celery workers.
+* **AI-Powered Resume Analysis**: Integrates the **Groq API (`llama-3.3-70b-versatile`)** to automatically parse student PDF resumes, generating real-time ATS compatibility scores, technical skill extraction, and structural feedback.
 * **Company Portal**: Recruiter registration, dynamic company branding, publishing high-impact placement drives with multiple eligible branches, screening candidates with an interactive preview modal showing biography and linked professional profiles (**GitHub, LinkedIn, Portfolio**), and interview scheduling workflows.
 * **Admin (Placement Cell) Dashboard**: Programmatically pre-seeded superuser oversight, company and placement drive approval funnels, student directory access, and real-time dynamic visual analytics (Chart.js).
 * **Unified Notification System**: Real-time DB-backed notification drawer (bell button on topbar) dynamically routing system-wide and user-targeted notifications across all roles (Admin, Company, Student).
@@ -161,6 +162,12 @@ source venv/bin/activate
 Install the required Python packages:
 ```bash
 pip install -r requirements.txt
+```
+
+Set up your environment variables by creating a `.env` file in the `backend` directory (Required for AI Resume Parsing):
+```env
+# Get a free API key from https://console.groq.com/keys
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
 Start the Flask backend server:
