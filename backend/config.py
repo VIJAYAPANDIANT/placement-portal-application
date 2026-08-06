@@ -4,6 +4,16 @@ from datetime import timedelta
 # Get absolute path to the backend directory for local SQLite database storage
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# Load local .env file variables into environment if present
+_env_path = os.path.join(BASE_DIR, '.env')
+if os.path.exists(_env_path):
+    with open(_env_path, 'r') as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped and '=' in stripped and not stripped.startswith('#'):
+                k, v = stripped.split('=', 1)
+                os.environ[k.strip()] = v.strip()
+
 class Config:
     # For Vercel / serverless environment, fallback to /tmp/app.db.
     # Otherwise, use the standard Flask instance folder database path.
@@ -42,4 +52,7 @@ class Config:
     CACHE_TYPE = os.environ.get('CACHE_TYPE', 'SimpleCache')
     CACHE_REDIS_URL = os.environ.get('CACHE_REDIS_URL', 'redis://localhost:6379/0')
     CACHE_DEFAULT_TIMEOUT = 300
+
+    # Groq API Key config
+    GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 

@@ -430,6 +430,14 @@ def get_student_profile_for_company(student_id):
     if not student:
         return jsonify({"error": "Student not found"}), 404
 
+    from app.models.skill import Skill
+    skills_query = Skill.query.filter_by(student_id=student_id).all()
+    categorized_skills = {}
+    for s in skills_query:
+        if s.category not in categorized_skills:
+            categorized_skills[s.category] = []
+        categorized_skills[s.category].append(s.name)
+
     return jsonify({
         "id": student.id,
         "name": student.name,
@@ -442,6 +450,7 @@ def get_student_profile_for_company(student_id):
         "portfolio_url": student.portfolio_url,
         "bio": student.bio,
         "skills": student.get_skills(),
+        "categorized_skills": categorized_skills,
         "resume_url": student.resume_url
     }), 200
 

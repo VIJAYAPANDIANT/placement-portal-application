@@ -370,14 +370,39 @@ const DriveApplicants = () => {
                     </div>
                   </div>
 
-                  <div style={{ marginTop: '20px' }}>
-                    <span style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Skills</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                      {profileModalData.skills?.map(s => (
-                        <span key={s} className="sp-skill-chip" style={{ margin: 0 }}>{s}</span>
-                      )) || <span style={{ color: '#9CA3AF' }}>No skills added</span>}
+                  {profileModalData.categorized_skills && Object.keys(profileModalData.categorized_skills).length > 0 ? (
+                    <div style={{ marginTop: '20px', borderTop: '1px solid #F3F4F6', paddingTop: '16px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>🤖 AI Extracted Skills</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {Object.entries(profileModalData.categorized_skills).map(([category, items]) => {
+                          if (!items || items.length === 0) return null;
+                          return (
+                            <div key={category} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                              <span style={{ fontSize: '9px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', width: '130px', flexShrink: 0, marginTop: '4px' }}>
+                                {category}
+                              </span>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                {items.map(s => (
+                                  <span key={s} className="badge bg-info-subtle text-info fw-semibold border border-info-subtle px-2 py-1 fs-9 rounded-pill" style={{ fontSize: '10px' }}>
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div style={{ marginTop: '20px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>Skills</span>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {profileModalData.skills?.map(s => (
+                          <span key={s} className="sp-skill-chip" style={{ margin: 0 }}>{s}</span>
+                        )) || <span style={{ color: '#9CA3AF' }}>No skills added</span>}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Bio Section */}
                   {profileModalData.bio && (

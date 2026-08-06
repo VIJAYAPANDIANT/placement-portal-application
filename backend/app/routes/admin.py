@@ -626,3 +626,13 @@ def mark_all_notifications_read():
     Notification.query.filter_by(is_read=False).update({'is_read': True})
     db.session.commit()
     return jsonify({'message': 'All notifications marked as read'}), 200
+
+
+@admin_bp.route('/student/<int:student_id>/resume-analysis', methods=['GET'])
+@role_required('admin')
+def get_admin_student_resume_analysis(student_id):
+    from app.models.resume_analysis import ResumeAnalysis
+    analysis = ResumeAnalysis.query.filter_by(student_id=student_id).first()
+    if not analysis:
+        return jsonify({"error": "No resume analysis found for this student."}), 404
+    return jsonify(analysis.to_dict()), 200

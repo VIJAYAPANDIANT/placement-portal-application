@@ -51,6 +51,12 @@ class Student(db.Model):
     # Establishes a one-to-many relationship with Application.
     applications = db.relationship('Application', backref='student', lazy=True)
 
+    # Establishes a one-to-one relationship with ResumeAnalysis.
+    resume_analysis = db.relationship('ResumeAnalysis', backref='student', uselist=False, cascade='all, delete-orphan')
+
+    # Establishes a one-to-many relationship with Skill.
+    skills_list = db.relationship('Skill', backref='student', cascade='all, delete-orphan')
+
     def __init__(self, name, email, password_hash, roll_number, branch, cgpa, graduation_year, resume_url=None, linkedin_url=None, github_url=None, portfolio_url=None, skills=None, bio=None, is_active=True, is_blacklisted=False, last_active_at=None):
         self.name = name
         self.email = email

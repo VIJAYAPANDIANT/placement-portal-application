@@ -25,6 +25,10 @@ const StudentDashboard = () => {
     return () => clearInterval(t);
   }, []);
 
+  const [analysis, setAnalysis] = useState(null);
+  const [skills, setSkills]       = useState(null);
+  const [analysisError, setAnalysisError] = useState(null);
+
   useEffect(() => {
     Promise.all([
       api.get('/student/dashboard/summary'),
@@ -32,8 +36,30 @@ const StudentDashboard = () => {
     ]).then(([summaryRes, drivesRes]) => {
       setData(summaryRes.data);
       setDrives(drivesRes.data || []);
+      if (summaryRes.data?.resume_uploaded) {
+        fetchResumeInsights();
+      }
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
+
+  const fetchResumeInsights = () => {
+    Promise.all([
+      api.get('/student/resume-analysis').catch(err => {
+        if (err.response?.status === 404) return { data: null };
+        throw err;
+      }),
+      api.get('/student/skills').catch(err => {
+        if (err.response?.status === 404) return { data: null };
+        throw err;
+      })
+    ]).then(([analysisRes, skillsRes]) => {
+      setAnalysis(analysisRes.data);
+      setSkills(skillsRes.data);
+    }).catch(err => {
+      console.error("Error fetching AI insights:", err);
+      setAnalysisError(err.response?.data?.error || "Failed to load AI insights.");
+    });
+  };
 
   const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const sb = data?.status_breakdown || {};
@@ -157,6 +183,222 @@ const StudentDashboard = () => {
             Complete Profile
           </Link>
         </div>
+
+        {/* AI Resume Insights Section */}
+        {data?.resume_uploaded && (
+          <div className="sp-panel" style={{ marginBottom: '16px' }}>
+            <div className="sp-panel__header" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+              <span className="sp-panel__title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                ✨ AI Resume Insights & ATS Analysis
+              </span>
+              {analysis && (
+                <span className="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-8 fw-semibold">
+                  Overall Rating: {analysis.overall_rating}
+                </span>
+              )}
+            </div>
+            
+            <div className="sp-panel__body">
+              {!analysis ? (
+                analysisError ? (
+                  <div className="alert alert-danger mb-0">{analysisError}</div>
+                ) : (
+                  <div className="text-center py-4" style={{ color: '#6B7280' }}>
+                    <div className="spinner-border spinner-border-sm text-teal me-2" style={{ color: '#0F766E' }} role="status"></div>
+                    <span>Generating your AI resume score and ATS compatibility insights...</span>
+                  </div>
+                )
+              ) : (
+                <div>
+                  {/* Scores Grid */}
+                  <div className="row g-4 mb-4 align-items-center">
+                    {/* circular ATS indicator */}
+                    <div className="col-md-3 d-flex flex-column align-items-center justify-content-center border-end">
+                      <div style={{ width: '120px', height: '120px', position: 'relative' }}>
+                        {/* Circular Progress SVG */}
+                        <svg viewBox="0 0 36 36" style={{ width: '100%', height: '100%' }}>
+                          <path
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="rgba(0,0,0,0.06)"
+                            strokeWidth="3.5"
+                          />
+                          <path
+                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#0F766E"
+                            strokeWidth="3.5"
+                            strokeDasharray={`${analysis.ats_score}, 100`}
+                            strokeLinecap="round"
+                            style={{ transition: 'stroke-dasharray 0.5s ease-in-out' }}
+                          />
+                        </svg>
+                        <div style={{ position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
+                          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--bs-body-color)' }}>{analysis.ats_score}</span>
+                          <div style={{ fontSize: '9px', color: '#6B7280', fontWeight: 700, textTransform: 'uppercase' }}>ATS Score</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-center">
+                        <span className="badge bg-primary-subtle text-primary fw-bold" style={{ fontSize: '10px' }}>
+                          {analysis.ats_overall_rating}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Breakdown Scores */}
+                    <div className="col-md-5 border-end px-4">
+                      <h6 className="fw-bold text-dark mb-3">Resume Metrics Breakdown (Resume Score: {analysis.resume_score}/100)</h6>
+                      <div className="d-flex flex-column gap-2">
+                        {[
+                          { label: 'Technical Skills', val: analysis.tech_skills_score, color: '#0F766E' },
+                          { label: 'Communication', val: analysis.communication_score, color: '#2563EB' },
+                          { label: 'Education', val: analysis.education_score, color: '#06B6D4' },
+                          { label: 'Projects Quality', val: analysis.projects_score, color: '#EA580C' },
+                          { label: 'Experience Relevance', val: analysis.experience_score, color: '#16A34A' }
+                        ].map(metric => (
+                          <div key={metric.label}>
+                            <div className="d-flex justify-content-between fs-8 fw-semibold mb-1" style={{ color: 'var(--ad-muted)' }}>
+                              <span>{metric.label}</span>
+                              <span>{metric.val}/100</span>
+                            </div>
+                            <div className="progress" style={{ height: '6px', borderRadius: '10px', background: 'rgba(0,0,0,0.06)' }}>
+                              <div
+                                className="progress-bar"
+                                role="progressbar"
+                                style={{ width: `${metric.val}%`, borderRadius: '10px', backgroundColor: metric.color }}
+                                aria-valuenow={metric.val}
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* ATS specific breakdowns */}
+                    <div className="col-md-4 px-4">
+                      <h6 className="fw-bold text-dark mb-3">ATS Scan Health</h6>
+                      <div className="d-flex flex-column gap-3">
+                        {[
+                          { label: 'Headings Readability', val: analysis.ats_headings_score },
+                          { label: 'Contact Info Found', val: analysis.ats_contact_score },
+                          { label: 'Keyword Match Density', val: analysis.ats_keyword_score }
+                        ].map(atsMetric => (
+                          <div key={atsMetric.label} className="d-flex align-items-center justify-content-between border-bottom pb-2">
+                            <span className="fs-7 text-muted fw-medium">{atsMetric.label}</span>
+                            <span className={`badge ${atsMetric.val >= 80 ? 'bg-success-subtle text-success' : atsMetric.val >= 50 ? 'bg-warning-subtle text-warning' : 'bg-danger-subtle text-danger'} fw-bold px-2 py-1`}>
+                              {atsMetric.val}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Skills Section */}
+                  {skills && Object.keys(skills).length > 0 && (
+                    <div className="mb-4 border-top pt-4">
+                      <h6 className="fw-bold text-dark mb-3">🤖 AI Extracted Skills Badges</h6>
+                      <div className="d-flex flex-column gap-3">
+                        {Object.entries(skills).map(([category, items]) => {
+                          if (!items || items.length === 0) return null;
+                          return (
+                            <div key={category} className="d-flex align-items-start gap-2">
+                              <span className="text-muted fw-bold fs-8 text-uppercase mt-1" style={{ width: '180px', flexShrink: 0 }}>
+                                {category}
+                              </span>
+                              <div className="d-flex flex-wrap gap-1">
+                                {items.map(s => (
+                                  <span key={s} className="badge bg-info-subtle text-info fw-semibold border border-info-subtle rounded-pill px-2 py-1 fs-8">
+                                    {s}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Strengths & Weaknesses Panel */}
+                  <div className="row g-3 border-top pt-4">
+                    <div className="col-md-6">
+                      <div className="card p-3 border-success-subtle bg-success-subtle bg-opacity-10 h-100" style={{ borderRadius: '10px' }}>
+                        <h6 className="fw-bold text-success mb-2">💪 Resume Strengths</h6>
+                        <ul className="fs-7 text-dark mb-0 ps-3">
+                          {analysis.strengths.map((str, idx) => (
+                            <li key={idx} className="mb-1">{str}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    <div className="col-md-6">
+                      <div className="card p-3 border-danger-subtle bg-danger-subtle bg-opacity-10 h-100" style={{ borderRadius: '10px' }}>
+                        <h6 className="fw-bold text-danger mb-2">⚠️ Areas for Improvement (Weaknesses)</h6>
+                        <ul className="fs-7 text-dark mb-0 ps-3">
+                          {analysis.weaknesses.map((weak, idx) => (
+                            <li key={idx} className="mb-1">{weak}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Missing sections & suggestions */}
+                  <div className="row g-3 mt-1">
+                    {/* ATS Missing keywords & suggestions */}
+                    <div className="col-md-6">
+                      <div className="card p-3 border-light h-100" style={{ borderRadius: '10px', background: 'var(--ad-hover-bg)' }}>
+                        <h6 className="fw-bold text-dark mb-2">⚡ ATS Optimization & Missing Keywords</h6>
+                        {analysis.ats_missing_keywords.length > 0 && (
+                          <div className="mb-2">
+                            <span className="fs-8 fw-bold text-muted d-block mb-1">RECOMMENDED KEYWORDS:</span>
+                            <div className="d-flex flex-wrap gap-1">
+                              {analysis.ats_missing_keywords.map((kw, idx) => (
+                                <span key={idx} className="badge bg-warning-subtle text-warning border border-warning-subtle rounded-3 px-2 py-1 fs-8">
+                                  +{kw}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <ul className="fs-7 text-muted ps-3 mb-0">
+                          {analysis.ats_suggestions.map((sug, idx) => (
+                            <li key={idx} className="mb-1">{sug}</li>
+                          ))}
+                          {analysis.ats_formatting_issues.map((issue, idx) => (
+                            <li key={idx} className="text-danger mb-1">Formatting: {issue}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Overall AI suggestions */}
+                    <div className="col-md-6">
+                      <div className="card p-3 border-light h-100" style={{ borderRadius: '10px', background: 'var(--ad-hover-bg)' }}>
+                        <h6 className="fw-bold text-dark mb-2">💡 Tips & AI Suggestions</h6>
+                        <ul className="fs-7 text-muted ps-3 mb-0">
+                          {analysis.suggestions.map((sug, idx) => (
+                            <li key={idx} className="mb-1">{sug}</li>
+                          ))}
+                          {analysis.improvement_tips.map((tip, idx) => (
+                            <li key={idx} className="mb-1">{tip}</li>
+                          ))}
+                          {analysis.grammar_issues.map((g, idx) => (
+                            <li key={idx} className="text-warning mb-1">Grammar: {g}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Main 2-col grid */}
         <div className="sp-main-grid">

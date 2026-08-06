@@ -369,8 +369,15 @@ def upload_resume():
     student.resume_url = rel_url
     db.session.commit()
 
+    # Trigger AI resume analysis synchronously
+    try:
+        from app.services.resume_ai import analyze_resume_sync
+        analyze_resume_sync(student_id, file_path)
+    except Exception as e:
+        print("Resume analysis invocation failed:", e)
+
     return jsonify({
-        "message": "Resume uploaded",
+        "message": "Resume uploaded and AI analysis completed successfully.",
         "resume_url": rel_url
     }), 200
 
@@ -480,4 +487,55 @@ def get_student_dashboard_summary():
         "recent_applications": recent_applications,
         "upcoming_interview": interview_data
     }), 200
+
+
+@student_bp.route('/resume-analysis', methods=['GET'])
+@role_required('student')
+def get_resume_analysis():
+    student_id = int(get_jwt_identity())
+    from app.models.resume_analysis import ResumeAnalysis
+    analysis = ResumeAnalysis.query.filter_by(student_id=student_id).first()
+    if not analysis:
+        return jsonify({"error": "No resume analysis found. Please upload a resume first."}), 404
+    return jsonify(analysis.to_dict()), 200
+
+
+@student_bp.route('/ats-score', methods=['GET'])
+@role_required('student')
+def get_ats_score():
+    student_id = int(get_jwt_identity())
+    from app.models.resume_analysis import ResumeAnalysis
+    analysis = ResumeAnalysis.query.filter_by(student_id=student_id).first()
+    if not analysis:
+        return jsonify({"error": "No ATS details found. Please upload a resume first."}), 404
+    return jsonify({
+        "ats_score": analysis.ats_score,
+        "ats_headings_score": analysis.ats_headings_score,
+        "ats_contact_score": analysis.ats_contact_score,
+        "ats_keyword_score": analysis.ats_keyword_score,
+        "ats_overall_rating": analysis.ats_overall_rating,
+        "ats_suggestions": analysis.get_list("ats_suggestions"),
+        "ats_missing_keywords": analysis.get_list("ats_missing_keywords"),
+        "ats_formatting_issues": analysis.get_list("ats_formatting_issues"),
+        "ats_weak_sections": analysis.get_list("ats_weak_sections"),
+        "resume_score": analysis.resume_score
+    }), 200
+
+
+@student_bp.route('/skills', methods=['GET'])
+@role_required('student')
+def get_student_skills():
+    student_id = int(get_jwt_identity())
+    from app.models.skill import Skill
+    skills = Skill.query.filter_by(student_id=student_id).all()
+    
+    # Categorize skills
+    categorized = {}
+    for s in skills:
+        cat = s.category
+        if cat not in categorized:
+            categorized[cat] = []
+        categorized[cat].append(s.name)
+        
+    return jsonify(categorized), 200
 
