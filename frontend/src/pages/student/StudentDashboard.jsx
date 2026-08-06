@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +30,35 @@ const StudentDashboard = () => {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [insightsMissing, setInsightsMissing] = useState(false);
 
+  const fileInputRef = useRef(null);
+  const [uploadingResume, setUploadingResume] = useState(false);
+
+  const handleResumeUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      setAnalysisError('Only PDF files are allowed.');
+      return;
+    }
+    try {
+      setUploadingResume(true);
+      setAnalysisError(null);
+      setInsightsMissing(false);
+      const fd = new FormData();
+      fd.append('resume', file);
+      await api.post('/student/upload-resume', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      fetchResumeInsights();
+      if (data) {
+        setData(prev => ({ ...prev, resume_uploaded: true }));
+      }
+    } catch (err) {
+      console.error("Resume upload failed:", err);
+      setAnalysisError(err.response?.data?.error || 'Failed to upload resume.');
+    } finally {
+      setUploadingResume(false);
+    }
+  };
+
   useEffect(() => {
     Promise.all([
       api.get('/student/dashboard/summary'),
@@ -59,7 +88,7 @@ const StudentDashboard = () => {
       .catch(err => {
         console.error("Error fetching AI insights:", err);
         const errMsg = err.response?.data?.error;
-        if (err.response?.status === 404 && errMsg !== "Resume file not found on server. Please re-upload your resume to generate AI insights.") {
+        if (err.response?.status === 404 && (!errMsg || !errMsg.includes("Resume file"))) {
           setInsightsMissing(true);
         } else {
           setAnalysisError(errMsg || "Failed to load AI insights.");
@@ -267,13 +296,31 @@ const StudentDashboard = () => {
                   <span className="fs-1 d-block mb-2">⚠️</span>
                   <div className="fw-semibold mb-1">Failed to Load AI Resume Insights</div>
                   <p className="text-muted fs-7 mb-3">{analysisError}</p>
-                  <button 
-                    onClick={fetchResumeInsights} 
-                    className="btn btn-sm btn-teal text-white fw-semibold px-3 py-1"
-                    style={{ backgroundColor: '#0F766E' }}
-                  >
-                    Retry
-                  </button>
+                  <div className="d-flex justify-content-center gap-2">
+                    <button 
+                      onClick={fetchResumeInsights} 
+                      className="btn btn-sm btn-teal text-white fw-semibold px-3 py-1"
+                      style={{ backgroundColor: '#0F766E' }}
+                      disabled={uploadingResume}
+                    >
+                      Retry
+                    </button>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleResumeUpload} 
+                      accept=".pdf" 
+                      style={{ display: 'none' }} 
+                    />
+                    <button 
+                      onClick={() => fileInputRef.current?.click()} 
+                      className="btn btn-sm btn-outline-danger px-3 py-1"
+                      style={{ borderRadius: '6px' }}
+                      disabled={uploadingResume}
+                    >
+                      {uploadingResume ? 'Uploading...' : 'Re-upload Resume (PDF)'}
+                    </button>
+                  </div>
                 </div>
               ) : !analysis ? (
                 <div className="text-center py-4" style={{ color: '#6B7280' }}>
