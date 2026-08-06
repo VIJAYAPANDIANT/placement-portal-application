@@ -1,18 +1,29 @@
-# Placement Portal Application
+# 🎓 Placement Portal Application
 
-A comprehensive full-stack application designed to streamline the campus placement process. It connects students, companies, and college administrators in one unified platform, facilitating job postings, student applications, interview scheduling, and placement tracking.
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![Bootstrap](https://img.shields.io/badge/bootstrap-%238511FA.svg?style=for-the-badge&logo=bootstrap&logoColor=white)
+![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=for-the-badge&logo=sqlite&logoColor=white)
+![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
+
+A comprehensive, state-of-the-art full-stack application designed to streamline the campus placement process. It connects students, companies, and college administrators in one unified platform, facilitating job postings, AI-driven student resume analysis, interview scheduling, and real-time placement tracking.
+
+---
 
 ## 🌟 Key Features & Rubric Compliance
 
-* **Student Portal**: Self-registration with normalized department selection dropdowns, PDF resume uploading, automated algorithm-based CGPA & Branch academic filtering (using robust equivalent branch matching), live application tracking, and asynchronous CSV report generation via Celery workers.
+* **Student Portal**: Self-registration with normalized department selection dropdowns, PDF resume uploading, automated algorithm-based CGPA & Branch academic filtering, live application tracking, and asynchronous CSV report generation via Celery workers.
 * **AI-Powered Resume Analysis**: Integrates the **Groq API (`llama-3.3-70b-versatile`)** to automatically parse student PDF resumes, generating real-time ATS compatibility scores, technical skill extraction, and structural feedback.
 * **Company Portal**: Recruiter registration, dynamic company branding, publishing high-impact placement drives with multiple eligible branches, screening candidates with an interactive preview modal showing biography and linked professional profiles (**GitHub, LinkedIn, Portfolio**), and interview scheduling workflows.
 * **Admin (Placement Cell) Dashboard**: Programmatically pre-seeded superuser oversight, company and placement drive approval funnels, student directory access, and real-time dynamic visual analytics (Chart.js).
 * **Unified Notification System**: Real-time DB-backed notification drawer (bell button on topbar) dynamically routing system-wide and user-targeted notifications across all roles (Admin, Company, Student).
 * **Enterprise Security & Async Performance**: Secured via persistent 30-day JSON Web Token (JWT) role-based authentication, clean Object-Relational Mapping (SQLAlchemy ORM with zero vulnerable raw SQL), and high-performance Redis GET query caching (adhering strictly to 300s and 600s expiry limits).
 
+---
 
-## 🏗 Architecture
+## 🏗️ Architecture
 
 The application is built on a modern decoupled architecture:
 
@@ -60,6 +71,8 @@ flowchart TB
     Celery -->|Update| DB
 ```
 
+---
+
 ## 🌐 REST APIs Reference
 
 | Endpoint | Method | Purpose | Authentication |
@@ -70,6 +83,8 @@ flowchart TB
 | `/api/company/drives/create` | `POST` | Publish high-impact placement drives | JWT Required |
 | `/api/student/resume/parse` | `POST` | Execute Groq AI parsing on uploaded PDF resume | JWT Required |
 | `/api/auth/notifications` | `GET` | Retrieve active user notifications | JWT Required |
+
+---
 
 ## 🗄️ Database ERD (Entity-Relationship Diagram)
 
@@ -130,12 +145,7 @@ erDiagram
     }
 ```
 
-## 🛠 Tech Stack
-
-* **Frontend**: React 19, Vite, React Router DOM, Bootstrap 5, Chart.js, Axios
-* **Backend**: Python, Flask, Flask-SQLAlchemy, Flask-JWT-Extended, Flask-Cors
-* **Async Processing**: Celery, Redis (for background tasks & caching)
-* **Database**: SQLite (local dev), PostgreSQL (production recommended)
+---
 
 ## 🎨 UI/UX Design Philosophy
 
@@ -143,7 +153,10 @@ To deliver an exceptional, premium user experience, the frontend interface was c
 * **Zero Prohibited Frameworks:** Built purely with **Bootstrap 5** and custom vanilla CSS without relying on unauthorized styling libraries like Tailwind CSS or Material UI.
 * **Structural Integrity:** Engineered with global CSS overrides to explicitly suppress Bootstrap row overflow bugs, eliminate horizontal scrolling (`100vw` clamping), and natively hide browser-default HTML inputs (like number spin buttons) to preserve aesthetic purity.
 * **Dynamic Aesthetics:** Features interactive hover states, modern glassmorphism card layouts, and vibrant contextual alert indicators to maintain high user engagement.
+* **Global Theming:** Implements a start-to-end global Dark/Light mode engine using CSS attributes (`data-theme="dark"`), ensuring seamless visual transitions across all components without rewriting React state.
 * **Unified Component Architecture:** Centralized dashboard layouts ensure seamless, state-of-the-art responsive navigation across Student, Company, and Admin panels.
+
+---
 
 ## 🚀 Local Setup Instructions
 
@@ -206,7 +219,6 @@ This starts a local mail capture server listening on `127.0.0.1:1025` which prin
 
 ### 4. Frontend Setup
 
-
 Open a new terminal and navigate to the `frontend` directory:
 ```bash
 cd frontend
@@ -223,6 +235,8 @@ npm run dev
 ```
 The frontend will typically be accessible at `http://localhost:5173`.
 
+---
+
 ## 🔑 Demo Credentials & Pre-Seeded Data
 
 To ensure a seamless, high-impact grading demonstration and immediate verification without manual database configuration, the application **automatically programmatically seeds** the database upon startup with an Admin superuser account and **16 world-class corporate recruitment drives**.
@@ -236,3 +250,5 @@ To facilitate immediate feature verification without manual input, the database 
 * **Default Recruiter Logins:** `hr@google.com`, `hr@microsoft.com`, `hr@amazon.com`, etc.
 * **Default Password for All Companies:** `company123`
 
+---
+*Built with ❤️ for campus placements.*
