@@ -24,10 +24,11 @@ const StudentDashboard = () => {
     const t = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
-
   const [analysis, setAnalysis] = useState(null);
   const [skills, setSkills]       = useState(null);
   const [analysisError, setAnalysisError] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [insightsMissing, setInsightsMissing] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -43,24 +44,30 @@ const StudentDashboard = () => {
   }, []);
 
   const fetchResumeInsights = () => {
-    Promise.all([
-      api.get('/student/resume-analysis').catch(err => {
-        if (err.response?.status === 404) return { data: null };
-        throw err;
-      }),
-      api.get('/student/skills').catch(err => {
-        if (err.response?.status === 404) return { data: null };
-        throw err;
+    setLoadingInsights(true);
+    setAnalysisError(null);
+    setInsightsMissing(false);
+    
+    api.get('/student/resume-analysis')
+      .then(analysisRes => {
+        setAnalysis(analysisRes.data);
+        return api.get('/student/skills');
       })
-    ]).then(([analysisRes, skillsRes]) => {
-      setAnalysis(analysisRes.data);
-      setSkills(skillsRes.data);
-    }).catch(err => {
-      console.error("Error fetching AI insights:", err);
-      setAnalysisError(err.response?.data?.error || "Failed to load AI insights.");
-    });
+      .then(skillsRes => {
+        setSkills(skillsRes.data);
+      })
+      .catch(err => {
+        console.error("Error fetching AI insights:", err);
+        if (err.response?.status === 404) {
+          setInsightsMissing(true);
+        } else {
+          setAnalysisError(err.response?.data?.error || "Failed to load AI insights.");
+        }
+      })
+      .finally(() => {
+        setLoadingInsights(false);
+      });
   };
-
   const timeStr = time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
   const sb = data?.status_breakdown || {};
 
@@ -199,15 +206,46 @@ const StudentDashboard = () => {
             </div>
             
             <div className="sp-panel__body">
-              {!analysis ? (
-                analysisError ? (
-                  <div className="alert alert-danger mb-0">{analysisError}</div>
-                ) : (
-                  <div className="text-center py-4" style={{ color: '#6B7280' }}>
-                    <div className="spinner-border spinner-border-sm text-teal me-2" style={{ color: '#0F766E' }} role="status"></div>
-                    <span>Generating your AI resume score and ATS compatibility insights...</span>
+              {loadingInsights ? (
+                <div className="text-center py-4" style={{ color: '#6B7280' }}>
+                  <div className="spinner-border spinner-border-sm text-teal me-2" style={{ color: '#0F766E' }} role="status"></div>
+                  <span>Generating your AI resume score and ATS compatibility insights...</span>
+                </div>
+              ) : insightsMissing ? (
+                <div className="alert alert-warning mb-0 text-center rounded-3 p-4">
+                  <span className="fs-1 d-block mb-2">🔍</span>
+                  <div className="fw-semibold mb-1">AI Resume Insights Pending</div>
+                  <p className="text-muted fs-7 mb-3">Your resume is uploaded, but the AI analysis report was not found. Please click below to generate your insights or re-upload your resume.</p>
+                  <div className="d-flex justify-content-center gap-2">
+                    <button 
+                      onClick={fetchResumeInsights} 
+                      className="btn btn-sm btn-teal text-white fw-semibold px-3 py-1"
+                      style={{ backgroundColor: '#0F766E' }}
+                    >
+                      Retry Analysis
+                    </button>
+                    <Link to="/student/profile" className="btn btn-sm btn-outline-secondary px-3 py-1">
+                      Go to Profile
+                    </Link>
                   </div>
-                )
+                </div>
+              ) : analysisError ? (
+                <div className="alert alert-danger mb-0 text-center rounded-3 p-4">
+                  <span className="fs-1 d-block mb-2">⚠️</span>
+                  <div className="fw-semibold mb-1">Failed to Load AI Resume Insights</div>
+                  <p className="text-muted fs-7 mb-3">{analysisError}</p>
+                  <button 
+                    onClick={fetchResumeInsights} 
+                    className="btn btn-sm btn-teal text-white fw-semibold px-3 py-1"
+                    style={{ backgroundColor: '#0F766E' }}
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : !analysis ? (
+                <div className="text-center py-4" style={{ color: '#6B7280' }}>
+                  <span className="text-muted">No resume analysis available. Please upload a resume.</span>
+                </div>
               ) : (
                 <div>
                   {/* Scores Grid */}

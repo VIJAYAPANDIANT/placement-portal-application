@@ -496,6 +496,23 @@ def get_resume_analysis():
     from app.models.resume_analysis import ResumeAnalysis
     analysis = ResumeAnalysis.query.filter_by(student_id=student_id).first()
     if not analysis:
+        # Check if student has a resume uploaded and try to analyze it on the fly
+        student = Student.query.get(student_id)
+        if student and student.resume_url:
+            import tempfile
+            filename = f"{student_id}.pdf"
+            upload_folder = os.path.join(tempfile.gettempdir(), 'uploads', 'resumes')
+            file_path = os.path.join(upload_folder, filename)
+            if os.path.exists(file_path):
+                try:
+                    from app.services.resume_ai import analyze_resume_sync
+                    analyze_resume_sync(student_id, file_path)
+                    analysis = ResumeAnalysis.query.filter_by(student_id=student_id).first()
+                except Exception as e:
+                    print("Dynamic resume analysis failed on-the-fly:", e)
+            else:
+                return jsonify({"error": "Resume file not found on server. Please re-upload your resume to generate AI insights."}), 404
+    if not analysis:
         return jsonify({"error": "No resume analysis found. Please upload a resume first."}), 404
     return jsonify(analysis.to_dict()), 200
 
