@@ -8,3 +8,5 @@ redis
 flask-mail
 flask-caching
 flask-cors
+requests
+pypdf
