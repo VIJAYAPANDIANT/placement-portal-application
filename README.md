@@ -60,6 +60,17 @@ flowchart TB
     Celery -->|Update| DB
 ```
 
+## 🌐 REST APIs Reference
+
+| Endpoint | Method | Purpose | Authentication |
+|---|---|---|---|
+| `/api/auth/login` | `POST` | Authenticate credentials and return JWT bearer token | Public |
+| `/api/auth/register/student` | `POST` | Register a new student profile | Public |
+| `/api/admin/dashboard/stats` | `GET` | Retrieve overall placement telemetry statistics | JWT Required |
+| `/api/company/drives/create` | `POST` | Publish high-impact placement drives | JWT Required |
+| `/api/student/resume/parse` | `POST` | Execute Groq AI parsing on uploaded PDF resume | JWT Required |
+| `/api/auth/notifications` | `GET` | Retrieve active user notifications | JWT Required |
+
 ## 🗄️ Database ERD (Entity-Relationship Diagram)
 
 The application implements a strict 6-table relational database architecture powered by **SQLAlchemy ORM**:
