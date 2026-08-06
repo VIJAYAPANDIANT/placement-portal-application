@@ -234,3 +234,136 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* =========================================================================
+   🌙 GLOBAL DARK MODE AESTHETIC OVERRIDES
+   ========================================================================= */
+
+[data-theme="dark"] {
+  /* Core SaaS Palette Overrides */
+  --saas-bg: #0F172A; /* Deep Slate Background */
+  --saas-card-bg: #1E293B; /* Slightly lighter Slate for Cards */
+  --saas-border: #334155;
+  --saas-text-main: #F8FAFC; /* Crisp White Text */
+  --saas-text-secondary: #94A3B8; /* Muted Slate Text */
+  
+  /* Retain Primary Teals but optimized for dark contrast */
+  --saas-primary: #14B8A6; 
+  --saas-primary-hover: #0D9488;
+  --saas-primary-light: rgba(20, 184, 166, 0.15);
+}
+
+/* Base Body and Text Overrides */
+[data-theme="dark"] body {
+  background-color: var(--saas-bg);
+  color: var(--saas-text-main);
+}
+
+/* Bootstrap Component Overrides for Dark Mode */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .card {
+  background-color: var(--saas-card-bg) !important;
+  border-color: var(--saas-border) !important;
+  color: var(--saas-text-main);
+}
+
+[data-theme="dark"] .text-dark {
+  color: var(--saas-text-main) !important;
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--saas-text-secondary) !important;
+}
+
+/* Table Overrides */
+[data-theme="dark"] .table {
+  color: var(--saas-text-main);
+  border-color: var(--saas-border);
+}
+
+[data-theme="dark"] .table td, 
+[data-theme="dark"] .table th {
+  background-color: var(--saas-card-bg) !important;
+  color: var(--saas-text-main) !important;
+  border-bottom-color: var(--saas-border);
+}
+
+[data-theme="dark"] .table-hover tbody tr:hover td,
+[data-theme="dark"] .table-hover tbody tr:hover th {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Inputs & Forms */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--saas-bg);
+  color: var(--saas-text-main);
+  border-color: var(--saas-border);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--saas-bg);
+  color: var(--saas-text-main);
+  border-color: var(--saas-primary);
+  box-shadow: 0 0 0 0.25rem rgba(20, 184, 166, 0.25);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--saas-text-secondary);
+}
+
+/* Sidebar and Navbar specific fixes */
+[data-theme="dark"] .saas-sidebar,
+[data-theme="dark"] .saas-navbar {
+  background-color: var(--saas-card-bg) !important;
+  border-color: var(--saas-border) !important;
+}
+
+[data-theme="dark"] .modal-content {
+  background-color: var(--saas-card-bg);
+  border-color: var(--saas-border);
+  color: var(--saas-text-main);
+}
+
+[data-theme="dark"] .modal-header {
+  border-bottom-color: var(--saas-border);
+}
+
+[data-theme="dark"] .modal-footer {
+  border-top-color: var(--saas-border);
+}
+
+/* Notification Drawer */
+[data-theme="dark"] .notification-drawer {
+  background-color: var(--saas-card-bg);
+  border-left-color: var(--saas-border);
+}
+
+[data-theme="dark"] .notification-item {
+  border-bottom-color: var(--saas-border) !important;
+}
+
+[data-theme="dark"] .notification-item:hover {
+  background-color: rgba(255,255,255, 0.05);
+}
+
+[data-theme="dark"] .offcanvas,
+[data-theme="dark"] .offcanvas-header,
+[data-theme="dark"] .offcanvas-body {
+  background-color: var(--saas-card-bg);
+  color: var(--saas-text-main);
+}
+
+/* List Groups */
+[data-theme="dark"] .list-group-item {
+  background-color: var(--saas-card-bg);
+  border-color: var(--saas-border);
+  color: var(--saas-text-main);
+}
+
+[data-theme="dark"] .badge.bg-light {
+  background-color: var(--saas-border) !important;
+  color: var(--saas-text-main) !important;
+}

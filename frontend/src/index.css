@@ -1,7 +1,6 @@
 /* Custom styles can be added here.
    Default template styles have been removed to prevent conflicts with Bootstrap 5 layout components. */
 body {
-  background-color: #f8f9fa;
   min-height: 100vh;
   overflow-x: hidden !important; /* Prevents global horizontal scroll bugs */
   width: 100%;
