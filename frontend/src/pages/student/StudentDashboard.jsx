@@ -58,11 +58,32 @@ const StudentDashboard = () => {
       })
       .catch(err => {
         console.error("Error fetching AI insights:", err);
-        if (err.response?.status === 404) {
+        const errMsg = err.response?.data?.error;
+        if (err.response?.status === 404 && errMsg !== "Resume file not found on server. Please re-upload your resume to generate AI insights.") {
           setInsightsMissing(true);
         } else {
-          setAnalysisError(err.response?.data?.error || "Failed to load AI insights.");
+          setAnalysisError(errMsg || "Failed to load AI insights.");
         }
+      })
+      .finally(() => {
+        setLoadingInsights(false);
+      });
+  };
+
+  const handleReScanResume = () => {
+    setLoadingInsights(true);
+    setAnalysisError(null);
+    api.post('/student/resume-analysis/re-scan')
+      .then(res => {
+        setAnalysis(res.data.analysis);
+        return api.get('/student/skills');
+      })
+      .then(skillsRes => {
+        setSkills(skillsRes.data);
+      })
+      .catch(err => {
+        console.error("Re-scan error:", err);
+        setAnalysisError(err.response?.data?.error || "Failed to re-scan resume.");
       })
       .finally(() => {
         setLoadingInsights(false);
@@ -194,15 +215,27 @@ const StudentDashboard = () => {
         {/* AI Resume Insights Section */}
         {data?.resume_uploaded && (
           <div className="sp-panel" style={{ marginBottom: '16px' }}>
-            <div className="sp-panel__header" style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
+            <div className="sp-panel__header" style={{ borderBottom: '1px solid var(--sidebar-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span className="sp-panel__title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 ✨ AI Resume Insights & ATS Analysis
               </span>
-              {analysis && (
-                <span className="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-8 fw-semibold">
-                  Overall Rating: {analysis.overall_rating}
-                </span>
-              )}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {analysis && (
+                  <button
+                    onClick={handleReScanResume}
+                    className="btn btn-sm btn-outline-secondary px-3 py-1 fs-8 fw-semibold"
+                    disabled={loadingInsights}
+                    style={{ border: '1px solid #d1d5db', borderRadius: '6px' }}
+                  >
+                    {loadingInsights ? 'Scanning...' : '🔄 Re-Scan'}
+                  </button>
+                )}
+                {analysis && (
+                  <span className="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fs-8 fw-semibold">
+                    Overall Rating: {analysis.overall_rating}
+                  </span>
+                )}
+              </div>
             </div>
             
             <div className="sp-panel__body">

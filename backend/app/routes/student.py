@@ -556,3 +556,32 @@ def get_student_skills():
         
     return jsonify(categorized), 200
 
+
+@student_bp.route('/resume-analysis/re-scan', methods=['POST'])
+@role_required('student')
+def rescan_resume():
+    student_id = int(get_jwt_identity())
+    student = Student.query.get(student_id)
+    if not student or not student.resume_url:
+        return jsonify({"error": "No resume uploaded to scan."}), 400
+
+    import tempfile
+    filename = f"{student_id}.pdf"
+    upload_folder = os.path.join(tempfile.gettempdir(), 'uploads', 'resumes')
+    file_path = os.path.join(upload_folder, filename)
+    
+    if not os.path.exists(file_path):
+        return jsonify({"error": "Resume file not found on server. Please re-upload your resume."}), 404
+
+    try:
+        from app.services.resume_ai import analyze_resume_sync
+        analyze_resume_sync(student_id, file_path)
+        from app.models.resume_analysis import ResumeAnalysis
+        analysis = ResumeAnalysis.query.filter_by(student_id=student_id).first()
+        return jsonify({
+            "message": "Resume scanned successfully.",
+            "analysis": analysis.to_dict()
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Analysis failed: {str(e)}"}), 500
+
