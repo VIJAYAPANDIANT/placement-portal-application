@@ -21,7 +21,11 @@ class Config:
         SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:////tmp/app.db')
     else:
         _base_dir = os.path.abspath(os.path.dirname(__file__))
-        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(_base_dir, 'instance', 'app.db')
+        _db_path = os.path.join(_base_dir, 'app.db')
+        if not os.path.exists(_db_path):
+            os.makedirs(os.path.join(_base_dir, 'instance'), exist_ok=True)
+            _db_path = os.path.join(_base_dir, 'instance', 'app.db')
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///' + _db_path
     
     # Disables Flask-SQLAlchemy's event system, which tracks modifications of objects. 
     # Setting it to False avoids overhead and improves performance, as we don't need this custom tracking.
