@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import ThemeToggle from './components/ThemeToggle';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import VerifyOTP from './pages/VerifyOTP';
 import RegisterStudent from './pages/RegisterStudent';
 import RegisterCompany from './pages/RegisterCompany';
 
@@ -37,7 +38,7 @@ const MainLayout = ({ children }) => {
     return () => clearInterval(timer);
   }, []);
 
-  const isAuthPage = ['/login', '/register/student', '/register/company'].includes(location.pathname);
+  const isAuthPage = ['/login', '/verify-otp', '/register/student', '/register/company'].includes(location.pathname);
 
   if (!isAuthenticated || isAuthPage) {
     return <div className="min-vh-100">{children}</div>;
@@ -82,6 +83,7 @@ function App() {
           
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/register/student" element={<RegisterStudent />} />
           <Route path="/register/company" element={<RegisterCompany />} />
           

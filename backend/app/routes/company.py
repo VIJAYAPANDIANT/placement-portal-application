@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, request, jsonify, send_file
 from flask_jwt_extended import get_jwt_identity
 from datetime import datetime
-from app import db
+from app import db, cache
 from app.models.company import Company
 from app.models.drive import PlacementDrive
 from app.models.application import Application
