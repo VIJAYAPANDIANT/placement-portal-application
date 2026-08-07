@@ -150,6 +150,18 @@ def create_app(config_class='config.Config'):
                         print(f"Migrating {table_name} table to add last_active_at column...")
                         db.session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN last_active_at DATETIME"))
                         db.session.commit()
+            
+            # Dynamic migration for failed_login_attempts and locked_until columns in student table
+            if 'student' in inspector.get_table_names():
+                student_cols = [col['name'] for col in inspector.get_columns('student')]
+                if 'failed_login_attempts' not in student_cols:
+                    print("Migrating student table to add failed_login_attempts column...")
+                    db.session.execute(text("ALTER TABLE student ADD COLUMN failed_login_attempts INTEGER DEFAULT 0 NOT NULL"))
+                    db.session.commit()
+                if 'locked_until' not in student_cols:
+                    print("Migrating student table to add locked_until column...")
+                    db.session.execute(text("ALTER TABLE student ADD COLUMN locked_until DATETIME"))
+                    db.session.commit()
         except Exception as e:
             print("Migration warning:", e)
 

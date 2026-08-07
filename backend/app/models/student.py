@@ -48,6 +48,10 @@ class Student(db.Model):
     # Timestamp of the student's last active request or login.
     last_active_at = db.Column(db.DateTime, nullable=True)
     
+    # Login tracking and lockout fields
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=False)
+    locked_until = db.Column(db.DateTime, nullable=True)
+    
     # Establishes a one-to-many relationship with Application.
     applications = db.relationship('Application', backref='student', lazy=True)
 
@@ -57,7 +61,7 @@ class Student(db.Model):
     # Establishes a one-to-many relationship with Skill.
     skills_list = db.relationship('Skill', backref='student', cascade='all, delete-orphan')
 
-    def __init__(self, name, email, password_hash, roll_number, branch, cgpa, graduation_year, resume_url=None, linkedin_url=None, github_url=None, portfolio_url=None, skills=None, bio=None, is_active=True, is_blacklisted=False, last_active_at=None):
+    def __init__(self, name, email, password_hash, roll_number, branch, cgpa, graduation_year, resume_url=None, linkedin_url=None, github_url=None, portfolio_url=None, skills=None, bio=None, is_active=True, is_blacklisted=False, last_active_at=None, failed_login_attempts=0, locked_until=None):
         self.name = name
         self.email = email
         self.password_hash = password_hash
@@ -74,6 +78,8 @@ class Student(db.Model):
         self.is_active = is_active
         self.is_blacklisted = is_blacklisted
         self.last_active_at = last_active_at
+        self.failed_login_attempts = failed_login_attempts
+        self.locked_until = locked_until
 
     def get_skills(self):
         if not self.skills:

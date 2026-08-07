@@ -23,6 +23,15 @@ class Notification(db.Model):
     role       = db.Column(db.String(50), nullable=False, default='admin')  # 'admin', 'student', 'company'
     user_id    = db.Column(db.Integer, nullable=True)  # Specific user ID if targeted, otherwise global for that role
 
+    def __init__(self, title, message, category='info', is_read=False, created_at=None, role='admin', user_id=None):
+        self.title = title
+        self.message = message
+        self.category = category
+        self.is_read = is_read
+        self.created_at = created_at if created_at is not None else datetime.utcnow()
+        self.role = role
+        self.user_id = user_id
+
     def to_dict(self):
         delta = datetime.utcnow() - self.created_at
         if delta.total_seconds() < 60:
